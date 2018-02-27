@@ -1,0 +1,5 @@
+# data sub-directories (the ones with actual content; the root(s) need to stay)
+./data/output
+
+# .asv (autosave files)
+.asv
