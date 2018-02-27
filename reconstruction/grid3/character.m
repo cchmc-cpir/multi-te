@@ -1,0 +1,2 @@
+'Test SDC:'
+'    read crds'

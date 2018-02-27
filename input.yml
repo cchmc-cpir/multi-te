@@ -1,0 +1,14 @@
+# MATLAB CONFIG
+# all variables defined here can be accessed as a MATLAB struct
+
+name: Alex Cochran
+group: CCHMC CPIR
+process: multi-TE
+settings:
+    num_projections:        29556
+    num_cut_projections:    0
+    num_points:             101
+    num_sep:                180
+    exp_threshold:          0.27                # percent
+    insp_threshold:         0.15                # percent
+    echo_times:             [80, 200, 400]      # microseconds
