@@ -18,4 +18,4 @@ Performs reconstrcution of MR images from gated k-space information.
 * Highlights T2* differences between lung parenchyma, vasculature, and fibrotic tissue.
 
 ### YAML-Matlab
-This project uses an input file written in [YAML](http://yaml.org/) to simplify execution and reduce hard-coding. The YAML file is read using [YAMLMATLAB](https://code.google.com/archive/p/yamlmatlab/)
+This project uses an input file written in [YAML](http://yaml.org/) to simplify execution and reduce hard-coding. The YAML file is read using [YAMLMatlab](https://code.google.com/archive/p/yamlmatlab/)
