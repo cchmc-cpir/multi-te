@@ -1,13 +1,17 @@
-path = '/media/cleveland/TECKLA CPIR/20160601_141124_FAC450_TA_SusceptibilityMouse5_1_1/18';
-NPro =51472;
+%path = '/media/cleveland/TECKLA CPIR/20160601_141124_FAC450_TA_SusceptibilityMouse5_1_1/18';
+NPro =29556;
 NPoints=101;
-NTE=4;
+NTE=3;
+
+path = fullfile(DATA_PATH, TRAJ_FILE);
+
+
 % Interleaves=13;
 % NPropi=NPro/Interleaves;
 
 %trajectory, along one spoke
 
-fid = fopen(fullfile(path,'traj'));
+fid = fopen(path);
 coords = fread(fid,[3,inf],'double');
 fclose(fid);
 coords = reshape(coords,[3 NPoints NTE NPro]);

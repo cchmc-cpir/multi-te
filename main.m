@@ -29,7 +29,6 @@ end
 
 %% start program timer
 
-timeStart = tic;
 timeNow = datetime('now');
 
 
@@ -46,21 +45,81 @@ end
 % (ROUTINE NEEDED: examine YAML file for any missing entries that will lead to program malfunction)
 %       ...structure as unit tests?
 
-%% select data files
 
-% use UI to choose FID
-while ~exist('DATA_FILE', 'var')
-    [DATA_FILE, DATA_PATH] = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID');
-    if ~isa(DATA_FILE, 'char') % could look for more robust methods
+%% select data directory
+
+while ~exist('DATA_PATH', 'var')
+    DATA_PATH = uigetdir('', 'Choose data directory');
+    if ~isa(DATA_PATH, 'char') % catches exit state of 0 (if action is cancelled)
         QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
             'Continue', 'Quit', 'Continue');
         switch QUIT
             case 'Quit'
-                return
+                return;
             case 'Continue'
-                clear DATA_FILE;
+                clear DATA_PATH;
         end
     end
+end
+
+
+%% select data files
+
+% either choose a directory and allow automatic selection of ACQP, FID, and TRAJ files, or select
+% each of them manually
+
+MODE = questdlg('Select ACQP, FID, and TRAJ files automatically or manually?', 'Selection mode', ...
+    'Manually', 'Automatically', 'Quit');
+switch MODE
+    case 'Automatically'
+        ACQP_FILE = fullfile(DATA_PATH, 'acqp');
+        TRAJ_FILE = fullfile(DATA_PATH, 'traj');
+        FID_FILE = fullfile(DATA_PATH, 'fid');
+    case 'Manually'
+        % use UI to choose ACQP file
+        while ~exist('ACQP_FILE', 'var')
+            ACQP_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose ACQP');
+            if ~isa(ACQP_FILE, 'char') % could look for more robust methods
+                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                    'Continue', 'Quit', 'Continue');
+                switch QUIT
+                    case 'Quit';
+                        return;
+                    case 'Continue'
+                        clear ACQP_FILE;
+                end
+            end
+        end
+
+        % use UI to choose trajectory file
+        while ~exist('TRAJ_FILE', 'var')
+            TRAJ_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose trajectories', DATA_PATH);
+            if ~isa(TRAJ_FILE, 'char') % could look for more robust methods
+                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                    'Continue', 'Quit', 'Continue');
+                switch QUIT
+                    case 'Quit'
+                        return
+                    case 'Continue'
+                        clear TRAJ_FILE;
+                end
+            end
+        end
+        
+        % use UI to choose FID file
+        while ~exist('FID_FILE', 'var')
+            FID_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID');
+            if ~isa(FID_FILE, 'char') % could look for more robust methods
+                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                    'Continue', 'Quit', 'Continue');
+                switch QUIT
+                    case 'Quit';
+                        return;
+                    case 'Continue'
+                        clear FID_FILE;
+                end
+            end
+        end
 end
 
 
@@ -82,7 +141,9 @@ end
 addpath('./gating');
 
 % perform gating operation
-retrogatingleadmag(configStruct, DATA_PATH, DATA_FILE, OUT_PATH, OUT_PREFIX);
+gateStartTime = tic;
+retrogatingleadmag(configStruct, DATA_PATH, FID_FILE, OUT_PATH, OUT_PREFIX);
+gateTimeElapsed = toc(gateStartTime);
 
 
 %% image reconstruction
@@ -91,7 +152,9 @@ retrogatingleadmag(configStruct, DATA_PATH, DATA_FILE, OUT_PATH, OUT_PREFIX);
 addpath('./reconstruction');
 
 % perform image reconstruction
+reconStartTime = tic;
 % reconstruction(PARAM1, PARAM2, PARAM3, ...);
+reconTimeElapsed = toc(reconStartTime);
 
 
 %% parameter mapping
@@ -100,13 +163,9 @@ addpath('./reconstruction');
 addpath('./mapping');
 
 % perform image mapping
+mapStartTime = tic;
 % mapping(PARAM1, PARAM2, PARAM3, ...);
-
-
-%% stop program timer
-
-% calculate time (seconds) since execution start
-timeElapsed = toc(timeStart);
+mapTimeElapsed = toc(mapStartTime);
 
 
 %% record all data filenames, etc. to an output file
@@ -132,7 +191,9 @@ end
 fprintf(logFileID, '\n-----------------------------------------------------------------------');
 fprintf(logFileID, '\n\nOUTPUT:\n');
 fprintf(logFileID, '\nData path: %s', DATA_PATH); 
-fprintf(logFileID, '\nExecution time: %f sec', timeElapsed);
+fprintf(logFileID, '\nGating execution time: %f sec', gateTimeElapsed);
+fprintf(logFileID, '\nReconstruction execution time: %f sec', reconTimeElapsed);
+fprintf(logFileID, '\nT2* Mapping Execution time: %f sec', mapTimeElapsed);
 
 % close the output file
 fclose(logFileID);

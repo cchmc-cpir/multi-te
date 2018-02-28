@@ -3,11 +3,11 @@ function sdc_multiTE(fileName,fileNumber,NTE,NPro)
 %%Author: Jinbang Guo; sampling density compensation for data from
 %%interleaved multi-TE UTE
 % clear all;
-addpath '/users/frend7/recon/sdc3_nrz_11aug/';
-addpath '/users/frend7/recon/grid3_dct_11aug/';
-addpath '/users/frend7/recon/MultiTE_Recon/';
+%addpath '/users/frend7/recon/sdc3_nrz_11aug/';
+%addpath '/users/frend7/recon/grid3_dct_11aug/';
+%addpath '/users/frend7/recon/MultiTE_Recon/';
 % path = '/users/frend7/20160906_093109_IRC272A_MF_DoxyMice_1_1/';
-path=strcat(['/users/frend7/',fileName]);
+%path=strcat(['/users/frend7/',fileName]);
 % fileNumber = 16;
 % beta = 1.5; % expansion factor ratio: alpha_x/alpha_z, with alpha_x=alpha_y.
 beta=1;
