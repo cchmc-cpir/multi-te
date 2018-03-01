@@ -74,11 +74,12 @@ switch MODE
     case 'Automatically'
         ACQP_FILE = fullfile(DATA_PATH, 'acqp');
         TRAJ_FILE = fullfile(DATA_PATH, 'traj');
+        METH_FILE = fullfile(DATA_PATH, 'meth');
         FID_FILE = fullfile(DATA_PATH, 'fid');
     case 'Manually'
         % use UI to choose ACQP file
         while ~exist('ACQP_FILE', 'var')
-            ACQP_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose ACQP');
+            ACQP_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose ACQP file');
             if ~isa(ACQP_FILE, 'char') % could look for more robust methods
                 QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
                     'Continue', 'Quit', 'Continue');
@@ -105,10 +106,25 @@ switch MODE
                 end
             end
         end
+
+        % use UI to choose method file
+        while ~exist('METH_FILE', 'var')
+            METH_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose method file', DATA_PATH);
+            if ~isa(METH_FILE, 'char') % could look for more robust methods
+                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                    'Continue', 'Quit', 'Continue');
+                switch QUIT
+                    case 'Quit'
+                        return
+                    case 'Continue'
+                        clear METH_FILE;
+                end
+            end
+        end
         
         % use UI to choose FID file
         while ~exist('FID_FILE', 'var')
-            FID_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID');
+            FID_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID', DATA_PATH);
             if ~isa(FID_FILE, 'char') % could look for more robust methods
                 QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
                     'Continue', 'Quit', 'Continue');
