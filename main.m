@@ -68,13 +68,13 @@ end
 % either choose a directory and allow automatic selection of ACQP, FID, and TRAJ files, or select
 % each of them manually
 
-MODE = questdlg('Select ACQP, FID, and TRAJ files automatically or manually?', 'Selection mode', ...
-    'Manually', 'Automatically', 'Quit');
+MODE = questdlg('Select ACQP, METHOD, FID, and TRAJ files automatically or manually?', ...
+    'Selection mode', 'Manually', 'Automatically', 'Quit');
 switch MODE
     case 'Automatically'
+        METH_FILE = fullfile(DATA_PATH, 'method');
         ACQP_FILE = fullfile(DATA_PATH, 'acqp');
         TRAJ_FILE = fullfile(DATA_PATH, 'traj');
-        METH_FILE = fullfile(DATA_PATH, 'meth');
         FID_FILE = fullfile(DATA_PATH, 'fid');
     case 'Manually'
         % use UI to choose ACQP file
@@ -173,7 +173,7 @@ if configStruct.mode.gate
         FID_FILE, ...
         OUT_PATH, ...
         OUT_PREFIX ...
-    )
+    );
     
     gateTimeElapsed = toc(gateStartTime);
 end
@@ -197,13 +197,18 @@ if configStruct.mode.reconstruct
         configStruct.settings.num_points, ...
         configStruct.settings.interleaves, ...
         configStruct.settings.recon_mode, ...
-        configStruct.settings.phi ...
-    )
+        configStruct.settings.phi, ...
+        configStruct.settings.zero_filling ...
+    );
     
-    readbrukerconfigs(DATA_PATH, ACQP_FILE, METH_FILE, ...
-        length(configStruct.settings.echo_times), configStruct.settings.num_points, ...
-        configStruct.)
-    % reconstruction(PARAM1, PARAM2, PARAM3, ...);
+    % image reconstruction
+    multitesdc( ...
+        DATA_PATH, ...
+        filename, ...
+        length(configStruct.settings.echo_times), ...
+        configStruct.num_proj ...
+    );
+
     reconTimeElapsed = toc(reconStartTime);
 end
 
@@ -229,7 +234,7 @@ if configStruct.mode.log
     logFileID = fopen(logFilePath, 'w');
 
     % add file header
-    fprintf(logFileID, '- - - MULTI-TE - - - ');
+    fprintf(logFileID, '- - - MULTI-TE - - -');
     fprintf(logFileID, '%s', datestr(timeNow, 'yyyy-mm-dd HH:MM:SS'));
     fprintf(logFileID, '\n\nINPUT PARAMS:\n\n');
 
