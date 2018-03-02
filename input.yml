@@ -1,10 +1,21 @@
-# MATLAB CONFIG
-# all variables defined here can be accessed as a MATLAB struct
-
+# MULTI-TE: Retrospective Gating, Reconstruction, T2* Mapping
 name: Alex Cochran
 group: CCHMC CPIR
 process: multi-TE
+
+# number of datasets to analyze
+# runs: 1; FIGURE THIS ONE OUT LATER
+
+# functionality switches
+mode:
+    gate: true
+    reconstruct: true
+    map: true
+    log: true
+
+# imaging parameters
 settings:
+    recon_mode:             goldmean            # 'goldmean' or 'keyhole'
     num_projections:        29556
     num_cut_projections:    0
     num_points:             101
