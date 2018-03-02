@@ -17,5 +17,7 @@ Performs reconstrcution of MR images from gated k-space information. **Note:** t
 * Involves creating binary masks of the lungs prior to masking.
 * Highlights T2* differences between lung parenchyma, vasculature, and fibrotic tissue.
 
+---
+
 ### YAML-Matlab
 This project uses an input file written in [YAML](http://yaml.org/) to simplify execution and reduce hard-coding. The YAML file is read using [YAMLMatlab](https://code.google.com/archive/p/yamlmatlab/)
