@@ -1,5 +1,7 @@
-function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, interlvs, trajMode, phi)
+function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
+    interlvs, trajMode, phi, zeroFilling)
     %READBRUKERCONFIGS Read information from Bruker ACQP and method.
+    %   dataPath:       path to directory containing data files
     %   acqpPath:       full path to ACQP file
     %   methPath:       full path to METHOD file
     %   numTE:          number of echo times
@@ -119,6 +121,7 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, inter
             end
         end
     else
+
         numViews = numProj;
         halfNumViews = numViews / 2;
         r = zeros(numViews, 1);             % could likely move these outside of if/else block
@@ -134,12 +137,29 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, inter
         end
     end
     
+    %% Choose anisotropic/isotropic resolution (zero filling)
+    
     trajectory = zeros(3, numPoints, numViews);
     
-    for i = 1:numViews
-        trajectory(1, :, i) = r(i) * trajKX;
-        trajectory(2, :, i) = p(i) * trajKY;
-        trajectory(3, :, i) = s(i) * trajKZ;
+    % value will default to isotropic if variable is not appropriately named
+    if strcmp(zeroFilling, 'anisotropic')
+        trajKX = trajKX / maxKX / 2;
+        trajKY = trajKY / maxKY / 2;
+        trajKZ = trajKZ / maxKZ / 2;
+        
+        for i = 1:numViews
+            trajectory(1, :, i) = r(i) * trajKX;
+            trajectory(2, :, i) = p(i) * trajKY;
+            trajectory(3, :, i) = s(i) * trajKZ;
+        end
+        
+    else % isotropic
+        for i = 1:numViews
+            trajectory(1, :, i) = r(i) * trajKX;
+            trajectory(2, :, i) = p(i) * trajKY;
+            trajectory(3, :, i) = s(i) * trajKZ;
+        end
+        
     end
     
     fileID = fopen(fullfile(dataPath, 'traj_measured'), 'w');
