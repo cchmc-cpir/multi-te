@@ -10,7 +10,7 @@ The ultimate goal is for this project to be able to use data acquired using a va
 Examines the first and second derivatives of the leading phase of the FID information (for each TE) and bins the data according to the points corresponding to end expiration and end inspiration. This is done to minimize image artifacts due to respiratory motion of the subject being imaged.
 
 ### Image Reconstruction
-Performs reconstrcution of MR images from gated k-space information. **Note:** this routine uses `MEX` files to interface with C files that perform gridding of k-space data to a Cartesian system.
+Performs reconstrcution of MR images from gated k-space information. **Note:** this routine uses `MEX` files to interface with `C` files that perform gridding of k-space data to a Cartesian system.
 
 ### T2* Mapping
 * Currently calculates T2* as an average of the TEs.
