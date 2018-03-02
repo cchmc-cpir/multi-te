@@ -1,20 +1,21 @@
-function retrogatingleadmag(configStruct, inputPath, inputFID, outputDir, outputPrefix)
-    % RETROGATINGLEADMAG Separate FID data based upon inspiration/expiration.
+function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp, ...
+        threshPctInsp, echoTimes, inputPath, inputFID, outputDir, outputPrefix)
+    %RETROGATINGLEADMAG Separate FID data based upon inspiration/expiration.
     %   Takes a single FID and returns new FID files separated into inspiration and expiration data,
     %   organized by echo time. Works for up to three echo times.
     %
-    %   Written by Alex Cochran, 2018.
+    %   Written by Jinbang Guo, Matt Freeman, Alex Cochran, 2018.
 
 
     %% constants
-
-    NUM_PROJ = configStruct.settings.num_projections;
-    NUM_CUT_PROJ = configStruct.settings.num_cut_projections;
-    NUM_POINTS = configStruct.settings.num_points;
-    NUM_SEP = configStruct.settings.num_sep;
-    THRESH_PCT_EXP = configStruct.settings.exp_threshold;
-    THRESH_PCT_INSP = configStruct.settings.insp_threshold;
-    ECHO_TIMES = configStruct.settings.echo_times;
+    
+    NUM_PROJ = numProj;
+    NUM_CUT_PROJ = numCutProj;
+    NUM_POINTS = numPoints;
+    NUM_SEP = numSep;
+    THRESH_PCT_EXP = threshPctExp;
+    THRESH_PCT_INSP = threshPctInsp;
+    ECHO_TIMES = echoTimes;
 
     % additional calculated constants
     NUM_PROJ_REAL = NUM_PROJ - NUM_CUT_PROJ;
@@ -56,9 +57,6 @@ function retrogatingleadmag(configStruct, inputPath, inputFID, outputDir, output
 
     %% confirm program configuration
 
-    % configuration layout
-
-
     % only prompts if the filenames have not already been confirmed
     if ~exist('CONFIRM', 'var')
         while ~exist('CONFIRM', 'var')
@@ -78,6 +76,7 @@ function retrogatingleadmag(configStruct, inputPath, inputFID, outputDir, output
         end
     end
 
+    
     %% data read
 
     % open file and extract k-space information, set by set
@@ -208,3 +207,4 @@ function retrogatingleadmag(configStruct, inputPath, inputFID, outputDir, output
 
     disp('RETROSPECTIVE GATING ROUTINE COMPLETE');
 end
+
