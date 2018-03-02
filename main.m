@@ -10,7 +10,7 @@
 % This is the entry point for multi-TE image processing. From here, retrospective gating, image
 % reconstruction, and parameter mapping can be done. All configuration options should be entered in
 % the input.yml file found in the top-level directory.
-%
+
 % NOTE: This script will prompt the user for input data (in this case, an appropriately sized FID
 % file), which can be selected from ~any~ directory. The output files are sent to the ./data/output
 % directory, where they are further organized by the time the program's execution is started. The
@@ -153,66 +153,90 @@ end
 
 %% retrospective gating
 
-% add gating folder path
-addpath('./gating');
+if configStruct.mode.gate
+    % add gating folder path
+    addpath('./gating');
 
-% perform gating operation
-gateStartTime = tic;
-retrogatingleadmag(configStruct, DATA_PATH, FID_FILE, OUT_PATH, OUT_PREFIX);
-gateTimeElapsed = toc(gateStartTime);
+    % perform gating operation
+    gateStartTime = tic;
+    retrogatingleadmag(configStruct, DATA_PATH, FID_FILE, OUT_PATH, OUT_PREFIX);
+    gateTimeElapsed = toc(gateStartTime);
+end
 
 
 %% image reconstruction
 
-% add reconstruction folder path
-addpath('./reconstruction');
+if configStruct.mode.reconstruct
+    % add reconstruction folder path
+    addpath('./reconstruction');
 
-% perform image reconstruction
-reconStartTime = tic;
-% reconstruction(PARAM1, PARAM2, PARAM3, ...);
-reconTimeElapsed = toc(reconStartTime);
+    % perform image reconstruction
+    reconStartTime = tic;
+    
+    % read Bruker output files (ACQP, METHOD) to make trajectory corrections
+    readbrukerconfigs( ...
+        DATA_PATH, ...
+        ACQP_FILE, ...
+        METH_FILE, ...
+        length(configStruct.settings.echo_times), ...
+        configStruct.settings.num_points, ...
+        configStruct.settings.interleaves, ...
+        configStruct.settings.recon_mode, ...
+        configStruct.settings.phi ...
+    )
+    
+    readbrukerconfigs(DATA_PATH, ACQP_FILE, METH_FILE, ...
+        length(configStruct.settings.echo_times), configStruct.settings.num_points, ...
+        configStruct.)
+    % reconstruction(PARAM1, PARAM2, PARAM3, ...);
+    reconTimeElapsed = toc(reconStartTime);
+end
 
 
 %% parameter mapping
 
-% add mapping folder path
-addpath('./mapping');
+if configStruct.mode.map
+    % add mapping folder path
+    addpath('./mapping');
 
-% perform image mapping
-mapStartTime = tic;
-% mapping(PARAM1, PARAM2, PARAM3, ...);
-mapTimeElapsed = toc(mapStartTime);
+    % perform image mapping
+    mapStartTime = tic;
+    % mapping(PARAM1, PARAM2, PARAM3, ...);
+    mapTimeElapsed = toc(mapStartTime);
+end
 
 
 %% record all data filenames, etc. to an output file
 
-% define log file path and open for writing
-logFilePath = fullfile(fullOutputPath, strcat(OUT_PREFIX, '.log'));
-logFileID = fopen(logFilePath, 'w');
+if configStruct.mode.log
+    % define log file path and open for writing
+    logFilePath = fullfile(fullOutputPath, strcat(OUT_PREFIX, '.log'));
+    logFileID = fopen(logFilePath, 'w');
 
-% add file header
-fprintf(logFileID, '- - - MULTI-TE - - - ');
-fprintf(logFileID, '%s', datestr(timeNow, 'yyyy-mm-dd HH:MM:SS'));
-fprintf(logFileID, '\n\nINPUT PARAMS:\n\n');
+    % add file header
+    fprintf(logFileID, '- - - MULTI-TE - - - ');
+    fprintf(logFileID, '%s', datestr(timeNow, 'yyyy-mm-dd HH:MM:SS'));
+    fprintf(logFileID, '\n\nINPUT PARAMS:\n\n');
 
-% copy YAML input file to log and add new information
-inputFileID = fopen(configFile);
-configLine = fgets(inputFileID);
-while ischar(configLine)
-    fprintf(logFileID, '%s', configLine);
+    % copy YAML input file to log and add new information
+    inputFileID = fopen(configFile);
     configLine = fgets(inputFileID);
+    while ischar(configLine)
+        fprintf(logFileID, '%s', configLine);
+        configLine = fgets(inputFileID);
+    end
+
+    % separate input & output information
+    fprintf(logFileID, '\n-----------------------------------------------------------------------');
+    fprintf(logFileID, '\n\nOUTPUT:\n');
+    fprintf(logFileID, '\nData path: %s', DATA_PATH); 
+    fprintf(logFileID, '\nGating execution time: %f sec', gateTimeElapsed);
+    fprintf(logFileID, '\nReconstruction execution time: %f sec', reconTimeElapsed);
+    fprintf(logFileID, '\nT2* Mapping Execution time: %f sec', mapTimeElapsed);
+
+    % close the output file
+    fclose(logFileID);
 end
-
-% separate input & output information
-fprintf(logFileID, '\n-----------------------------------------------------------------------');
-fprintf(logFileID, '\n\nOUTPUT:\n');
-fprintf(logFileID, '\nData path: %s', DATA_PATH); 
-fprintf(logFileID, '\nGating execution time: %f sec', gateTimeElapsed);
-fprintf(logFileID, '\nReconstruction execution time: %f sec', reconTimeElapsed);
-fprintf(logFileID, '\nT2* Mapping Execution time: %f sec', mapTimeElapsed);
-
-% close the output file
-fclose(logFileID);
 
 
 %% finish execution
