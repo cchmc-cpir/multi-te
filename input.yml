@@ -20,7 +20,9 @@ settings:
     num_projections:        29556
     num_cut_projections:    0
     num_points:             101                 # number of points in each trajectory
-    fid_points:             128                 # ???
+    num_points_shift:       20                  # number of points shifted before gradient on
+    ram_points:             80                  # ??? (sdc_multiTE.m)
+    fid_points:             128                 # ??? (sdc_multiTE.m)
     num_sep:                180                 # ???
     exp_threshold:          0.27                # percent
     insp_threshold:         0.15                # percent
