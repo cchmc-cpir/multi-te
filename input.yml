@@ -1,7 +1,10 @@
 # MULTI-TE: Retrospective Gating, Reconstruction, T2* Mapping
+
+# metadata
 name: Alex Cochran
 group: CCHMC CPIR
 process: multi-TE
+trialID: test
 
 # number of datasets to analyze
 # runs: 1; FIGURE THIS ONE OUT LATER

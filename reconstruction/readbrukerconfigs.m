@@ -11,7 +11,8 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
     %       'goldmean' = golden mean trajectory
     %       'keyhold' = keyhole trajectory
     %   phi:            fir 2D golden mean trajectory
-    
+    %
+    %   Written by Jinbang Guo, Alex Cochran 2018.
     
     %% ACQP FILE PARSE
     

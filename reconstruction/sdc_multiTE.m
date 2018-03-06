@@ -72,7 +72,7 @@ DCFfilename = strcat('DCF_',RespMode,'.raw');
  crds = tmp(:,1:RealNPoints,(LeadingCutPro(i)+1):NPro(i)-EndingCutPro(i));%cut ending points along one spoke;
  r = sqrt(crds(1,RealNPoints,:).^2 + crds(2,RealNPoints,:).^2 + crds(3,RealNPoints,:).^2);
  crds = crds./max(r(:))/2;
-disp(['generating DCF for ',realpath]);
+disp(['generating DCF for 'gr,realpath]);
 
 '   SDC params:'
 numIter = 25;
