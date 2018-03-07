@@ -1,20 +1,17 @@
 %% MULTI-TE IMAGE PROCESSING: ENTRY POINT
 
-%{
-    Author(s): Alex Cochran
-    Email: Alexander.Cochran@cchmc.org, acochran50@gmail.com
-    Group: CCHMC CPIR
-    Date: 2018
-%}
+%   Author(s): Alex Cochran
+%   Email: Alexander.Cochran@cchmc.org, acochran50@gmail.com
+%   Group: CCHMC CPIR
+%   Date: 2018
 
 % This is the entry point for multi-TE image processing. From here, retrospective gating, image
 % reconstruction, and parameter mapping can be done. All configuration options should be entered in
 % the input.yml file found in the top-level directory.
-
-% NOTE: This script will prompt the user for input data (in this case, an appropriately sized FID
-% file), which can be selected from ~any~ directory. The output files are sent to the ./data/output
-% directory, where they are further organized by the time the program's execution is started. The
-% trajectory file ('traj') is also assumed to be in the same directory as the selected FID.
+%
+% NOTE: This program has options for manual and automatic definition of input and output
+% filenames/locations. Carefully review defaults if you aren't sure if they are compatible with your
+% datasets/workflow.
 
 
 %% ask to clear workspace if already populated
@@ -48,6 +45,10 @@ end
 
 %% select data directory
 
+
+% notify user that having all data files in the same directory is a good idea
+fprintf('\nNOTE: For ease of use, have the FID, ACQP, trajectory, and method files in one folder.')
+
 while ~exist('DATA_PATH', 'var')
     DATA_PATH = uigetdir('', 'Choose data directory');
     if ~isa(DATA_PATH, 'char') % catches exit state of 0 (if action is cancelled)
@@ -68,81 +69,100 @@ end
 % either choose a directory and allow automatic selection of ACQP, FID, and TRAJ files, or select
 % each of them manually
 
-MODE = questdlg('Select ACQP, METHOD, FID, and TRAJ files automatically or manually?', ...
-    'Selection mode', 'Manually', 'Automatically', 'Quit');
-switch MODE
-    case 'Automatically'
-        METH_FILE = fullfile(DATA_PATH, 'method');
-        ACQP_FILE = fullfile(DATA_PATH, 'acqp');
-        TRAJ_FILE = fullfile(DATA_PATH, 'traj');
-        FID_FILE = fullfile(DATA_PATH, 'fid');
-    case 'Manually'
-        % use UI to choose ACQP file
-        while ~exist('ACQP_FILE', 'var')
-            ACQP_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose ACQP file');
-            if ~isa(ACQP_FILE, 'char') % could look for more robust methods
-                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
-                    'Continue', 'Quit', 'Continue');
-                switch QUIT
-                    case 'Quit';
-                        return;
-                    case 'Continue'
-                        clear ACQP_FILE;
-                end
-            end
-        end
+while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
+    INPUT_MODE = questdlg('Select ACQP, METHOD, FID, and TRAJ files automatically or manually?', ...
+        'Selection mode', 'Manually', 'Automatically', 'Quit');
+    switch INPUT_MODE
+        case 'Automatically'
+            METH_FILE = fullfile(DATA_PATH, 'method');
+            ACQP_FILE = fullfile(DATA_PATH, 'acqp');
+            TRAJ_FILE = fullfile(DATA_PATH, 'traj');
+            FID_FILE = fullfile(DATA_PATH, 'fid');
 
-        % use UI to choose trajectory file
-        while ~exist('TRAJ_FILE', 'var')
-            TRAJ_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose trajectories', DATA_PATH);
-            if ~isa(TRAJ_FILE, 'char') % could look for more robust methods
-                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
-                    'Continue', 'Quit', 'Continue');
-                switch QUIT
-                    case 'Quit'
-                        return
-                    case 'Continue'
-                        clear TRAJ_FILE;
+        case 'Manually'
+            % use UI to choose ACQP file
+            while ~exist('ACQP_FILE', 'var')
+                ACQP_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose ACQP file');
+                if ~isa(ACQP_FILE, 'char') % could look for more robust methods
+                    QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                        'Continue', 'Quit', 'Continue');
+                    switch QUIT
+                        case 'Quit';
+                            return;
+                        case 'Continue'
+                            clear ACQP_FILE;
+                    end
                 end
             end
-        end
 
-        % use UI to choose method file
-        while ~exist('METH_FILE', 'var')
-            METH_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose method file', DATA_PATH);
-            if ~isa(METH_FILE, 'char') % could look for more robust methods
-                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
-                    'Continue', 'Quit', 'Continue');
-                switch QUIT
-                    case 'Quit'
-                        return
-                    case 'Continue'
-                        clear METH_FILE;
+            % use UI to choose trajectory file
+            while ~exist('TRAJ_FILE', 'var')
+                TRAJ_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose trajectories', DATA_PATH);
+                if ~isa(TRAJ_FILE, 'char') % could look for more robust methods
+                    QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                        'Continue', 'Quit', 'Continue');
+                    switch QUIT
+                        case 'Quit'
+                            return
+                        case 'Continue'
+                            clear TRAJ_FILE;
+                    end
                 end
             end
-        end
-        
-        % use UI to choose FID file
-        while ~exist('FID_FILE', 'var')
-            FID_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID', DATA_PATH);
-            if ~isa(FID_FILE, 'char') % could look for more robust methods
-                QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
-                    'Continue', 'Quit', 'Continue');
-                switch QUIT
-                    case 'Quit';
-                        return;
-                    case 'Continue'
-                        clear FID_FILE;
+
+            % use UI to choose method file
+            while ~exist('METH_FILE', 'var')
+                METH_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose method file', DATA_PATH);
+                if ~isa(METH_FILE, 'char') % could look for more robust methods
+                    QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                        'Continue', 'Quit', 'Continue');
+                    switch QUIT
+                        case 'Quit'
+                            return
+                        case 'Continue'
+                            clear METH_FILE;
+                    end
                 end
             end
-        end
+
+            % use UI to choose FID file
+            while ~exist('FID_FILE', 'var')
+                FID_FILE = uigetfile({'*.*', 'All Files (*.*)'}, 'Choose FID', DATA_PATH);
+                if ~isa(FID_FILE, 'char') % could look for more robust methods
+                    QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+                        'Continue', 'Quit', 'Continue');
+                    switch QUIT
+                        case 'Quit';
+                            return;
+                        case 'Continue'
+                            clear FID_FILE;
+                    end
+                end
+            end
+
+        case 'Quit'
+            return
+    end
 end
 
 
 %% define output location(s)
 
-OUT_PATH = './data/output';
-OUT_PREFIX = datestr(timeNow, 'yyyy-mm-dd_HH-MM-SS'); % prefix for output file names
+while ~exist('OUTPUT_MODE', 'var') || isempty(OUTPUT_MODE)
+    OUTPUT_MODE = questdlg('Define output location and file prefix automatically or manually?', ...
+        'Selection mode', 'Manually', 'Automatically', 'Quit');
+    switch OUTPUT_MODE
+        case 'Automatically'
+            OUT_PATH = fullfile(DATA_PATH, '/data/output/');
+            OUT_PREFIX = datestr(timeNow, 'yyyy-mm-dd_HH-MM-SS'); % date prefix for output file names
+        case 'Manually'
+            OUT_PATH = uigetdir('', 'Choose output directory');
+            OUT_PREFIX = inputdlg('Enter a prefix for output files:');
+        case 'Quit'
+            return
+    end
+end
+
 fullOutputPath = strcat(OUT_PATH, '/', OUT_PREFIX);
 
 % safely create output directory for this execution
@@ -159,16 +179,15 @@ if configStruct.mode.gate
 
     % perform gating operation
     gateStartTime = tic;
-    retrogatingleadmag(configStruct, DATA_PATH, FID_FILE, OUT_PATH, OUT_PREFIX);
     
     retrogatingleadmag( ...
-        configStruct.num_projections, ...
-        configStruct.num_cut_projections, ...
-        configStruct.num_points, ...
-        configStruct.num_sep, ...
-        configStruct.exp_threshold, ...
-        configStruct.insp_threshold, ...
-        configStruct.echo_times, ...
+        configStruct.settings.num_projections, ...
+        configStruct.settings.num_cut_projections, ...
+        configStruct.settings.num_points, ...
+        configStruct.settings.num_sep, ...
+        configStruct.settings.exp_threshold, ...
+        configStruct.settings.insp_threshold, ...
+        configStruct.settings.echo_times, ...
         DATA_PATH, ...
         FID_FILE, ...
         OUT_PATH, ...
@@ -263,4 +282,3 @@ end
 
 fprintf('\nExecution finished: << %f sec >>\n', timeElapsed);
 fprintf('Output available at %s\n', fullOutputPath);
-
