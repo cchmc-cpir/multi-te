@@ -13,20 +13,25 @@ trialID: test
 mode:
     gate: true
     reconstruct: true
-    map: true
+    map: false
     log: true
 
 # imaging parameters
 settings:
-    recon_mode:             goldmean            # 'goldmean' or 'keyhole'
-    zero_filling:           anisotropic         # 'anisotropic' or 'isotropic'
+    recon_mode:             goldmean                # 'goldmean' or 'keyhole'
+    zero_filling:           anisotropic             # 'anisotropic' or 'isotropic'
     num_projections:        29556
     num_cut_projections:    0
-    num_points:             101                 # number of points in each trajectory
-    num_points_shift:       20                  # number of points shifted before gradient on
-    ram_points:             80                  # ??? (sdc_multiTE.m)
-    fid_points:             128                 # ??? (sdc_multiTE.m)
-    num_sep:                180                 # ???
-    exp_threshold:          0.27                # percent
-    insp_threshold:         0.15                # percent
-    echo_times:             [80, 200, 400]      # microseconds
+    num_points:             101                     # number of points in each trajectory
+    num_points_shift:       20                      # number of points shifted before gradient on
+    ram_points:             80                      # ??? (sdc_multiTE.m)
+    fid_points:             128                     # ??? (sdc_multiTE.m)
+    num_sep:                180                     # ???
+    exp_threshold:          0.27                    # percent
+    insp_threshold:         0.15                    # percent
+    echo_times:             [80, 200, 400]          # microseconds
+    interleaves:            13                      # number of slice interleaves (keyhole)
+    phi:                    [0.46557123 0.68232780] # for 2D golden mean trajectory
+    resp_mode:              expiration              # 'inspiration' or 'expiration'
+    alpha:                  2                       # gridding oversampling ratio
+    beta:                   1                       # expansion factor ratio
