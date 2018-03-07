@@ -38,6 +38,7 @@ clear tmp;
 % NTE=1;
 '   read k-space data'
 fid = fopen(fullfile(path,fidname));
+
 tmp = squeeze(fread(fid,inf,'int32'));%step-like scaling depending on SW_h.
 fclose(fid);
 % disp(size(tmp));disp(fidpoints);disp(NTE);disp(NPro);

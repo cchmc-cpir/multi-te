@@ -1,12 +1,14 @@
-function multitesdc(trialID, fidPath, trajPath, numTE, numProj, numPoints, fidPoints, numPointsShift, leadingCutProj, endingCutProj)
+function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPoints, numThreads, ...
+    numPointsShift, leadingCutProj, endingCutProj, numIter, oSF, verbose, ramPointsMod, alpha, beta)
     %MULTITESDC Multi-TE sampling density compensation.
     %   Appropriately weights non-uniformly sampled k-space data to ensure accurate image
     %   reconstruction after interpolation onto a Cartesian grid. For use with data from interleaved
     %   multi-TE UTE sequences.
     %
-    %   trialID:            user-specific experimental ID (for output filenames)
     %   fidPath:            FID file path
     %   trajPath:           trajectory file path
+    %   outPath:            output path
+    %   outPrefix:          output filename prefix (for organization)
     %   numTE:              number of echo tims
     %   numProj:            number of projections
     %   numPoints:          number of points on each projectoin
@@ -15,9 +17,11 @@ function multitesdc(trialID, fidPath, trajPath, numTE, numProj, numPoints, fidPo
     %   leadingCutProj:     number of projections cut from leading edge
     %   endingCutProj:      numbe rof projections cut from ending edge
     %   numIter:            number of iterations (SDC)
-    %   effMatrix:          _____ (SDC)
     %   oSF:                _____ (SDC)
     %   verbose:            _____ (SDC)
+    %   ramPointsMod:       _____
+    %   alpha:              gridding oversampling ratio (for grid3 routine)
+    %   beta:               expansion factor ratio: alpha_x/alpha_z, where alpha_x = alpha_y (grid3)
     %
     %   Written by Jinbang Guo, Alex Cochran 2018.
 
@@ -25,19 +29,19 @@ function multitesdc(trialID, fidPath, trajPath, numTE, numProj, numPoints, fidPo
     %% respiration mode
     
     % specify respiration mode (inspiration/expiration)
-    if strfind(fidFile, 'inspiration')
+    if strfind(trajFile, 'inspiration')
         respMode = 'inspiration';
-    elseif strfind(fidFile, 'expiration')
+    elseif strfind(trajFile, 'expiration')
         respMode = 'expiration';
     else
         respMode = 'notspec';
     end
 
     
-    %% setup calculated parameters
+    %% setup calculated parameter(s)/other local variables
     
     realNumPoints = numPoints - numPointsShift;
-    realNumProj = numProj - leadingCutProj - endingCutProj;
+    DCFPath = fullfile(outPath, strcat('DCF_respmode'));
      
     
     %% load trajectory information
@@ -62,7 +66,11 @@ function multitesdc(trialID, fidPath, trajPath, numTE, numProj, numPoints, fidPo
     %% SDC calculations
     
     % add nested SDC directory to current path
-    addpath('./sdc3')
+    addpath('./sdc3');
+    
+    % define effMatrix
+    ramPoints = numPoints - ramPointsMod;
+    effMatrix = (realNumPoints - ramPoints) * 2 * beta;
     
     % run SDC routine
     DCF = sdc3_MAT(coords, numIter, effMatrix, verbose, oSF);
@@ -71,8 +79,10 @@ function multitesdc(trialID, fidPath, trajPath, numTE, numProj, numPoints, fidPo
     
     %% write output DCF
     
-    temp = DCF;
-    fileID = fopen(fullfile);
+    fileID = fopen(DCFPath, 'w');
+    fwrite(fileID, DCF, 'float32');
+    fclose(fileID);
+    
     clear temp;
     clear DCF;
     clear crds;
@@ -81,12 +91,30 @@ function multitesdc(trialID, fidPath, trajPath, numTE, numProj, numPoints, fidPo
     clear DCFFilename;
 
     
-    %% end reconstruction
+    %% run reconstruction routine
     
     % add nested grid3 directory to current path
-    addpath('./grid3')
+    addpath('./grid3');
     
-    disp(['Reconstructing ', newFilePath])
-    grid3_multiTE(numPoints)
+    disp(['Reconstructing ', newFilePath]);
+    multitegrid( ...
+        numPoints, ...
+        numProj, ...
+        ramPoints, ...
+        fidPoints, ...
+        leadingCutProj, ...
+        endingCutProj, ...
+        numPointsShift, ...
+        respMode, ...
+        trajPath, ...
+        outPath, ...
+        alpha, ...
+        numTE, ...
+        fidPath, ...
+        trajPath, ...
+        numThreads ...
+    );
+
+
 end
 
