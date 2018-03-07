@@ -22,10 +22,10 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
     acqpData = acqpData{1};
     
     for idx = 1:size(acqpData, 1)
-        testStr = char(acqpData{index});
+        testStr = char(acqpData{idx});
         if length(testStr) > 10
             if strcmp(testStr(1:11), '##$ACQ_size')
-                acqpReadFrames = str2double(acqpRead(index + 1));
+                acqpReadFrames = str2double(acqpData(idx + 1));
             end
         end
     end
