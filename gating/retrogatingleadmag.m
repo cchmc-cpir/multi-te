@@ -1,5 +1,5 @@
 function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp, ...
-        threshPctInsp, echoTimes, inputPath, inputFID, outputDir, outputPrefix)
+    threshPctInsp, echoTimes, inputPath, inputFID, outputDir, outputPrefix)
     %RETROGATINGLEADMAG Separate FID data based upon inspiration/expiration.
     %   Takes a single FID and returns new FID files separated into inspiration and expiration data,
     %   organized by echo time. Works for up to three echo times.
@@ -80,7 +80,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
     %% data read
 
     % open file and extract k-space information, set by set
-    fileID = fopen(fullfile(DATA_PATH, DATA_FILE));
+    fileID = fopen(DATA_FILE);
     kData = fread(fileID, [2, inf], 'int32');
     fclose(fileID);
 
