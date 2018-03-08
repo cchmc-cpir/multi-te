@@ -22,33 +22,33 @@
 %   * PROCESSED_PATH content will be created as needed during the course of the analysis
 %
 % DATA_DIRECTORY
-% ??? SCAN_DATA_PATH
-% ?   ??? SCAN_DATA_1
-% ?   ??? SCAN_DATA_2
-% ?   ??? SCAN_DATA_N
-% ?        ??? acqp
-% ?        ??? traj
-% ?        ??? method
-% ?        ??? fid
-% ?        ??? ...
-% ??? PROCESSED_PATH
-% ?   ??? SCAN_DATA_1_PROCESSED    NOTE: "SCAN_DATA_1" here means the same directory name as the
-% ?   ??? SCAN_DATA_2_PROCESSED    sub-directories the SCAN_DATA_PATH directory above for contin-
-% ?   ??? SCAN_DATA_N_PROCESSED    uity in the processing workflow. 
-% ?        ??? GATING
-% ?        ?   ??? gating_file_1
-% ?        ?   ??? gating_file_2
-% ?        ?   ??? ...
-% ?        ??? RECONSTRUCTION
-% ?        ?   ??? recon_file_1
-% ?        ?   ??? recon_file_2
-% ?        ?   ??? ...
-% ?        ??? MAPPING
-% ?        ?   ??? map_file_1
-% ?        ?   ??? map_file_2
-% ?        ?   ??? ...
-% ?        ??? scan_report.log (any additional information on this particular scan)
-% ??? readme.txt (or any other additional files relating to the dataset)
+% |--- SCAN_DATA_PATH
+% |   |--- SCAN_DATA_1
+% |   |--- SCAN_DATA_2
+% |   |--- SCAN_DATA_N
+% |        |--- acqp
+% |        |--- traj
+% |        |--- method
+% |        |--- fid
+% |        |--- ...
+% |--- PROCESSED_PATH
+% |   |--- SCAN_DATA_1_PROCESSED    NOTE: "SCAN_DATA_1" here means the same directory name as the
+% |   |--- SCAN_DATA_2_PROCESSED    sub-directories the SCAN_DATA_PATH directory above for contin-
+% |   |--- SCAN_DATA_N_PROCESSED    uity in the processing workflow. 
+% |        |--- GATING
+% |        |   |--- gating_file_1
+% |        |   |--- gating_file_2
+% |        |   |--- ...
+% |        |--- RECONSTRUCTION
+% |        |   |--- recon_file_1
+% |        |   |--- recon_file_2
+% |        |   |--- ...
+% |        |--- MAPPING
+% |        |   |--- map_file_1
+% |        |   |--- map_file_2
+% |        |   |--- ...
+% |        |--- scan_report.log (any additional information on this particular scan)
+% |--- readme.txt (or any other additional files relating to the dataset)
 
 
 %% ask to clear workspace if already populated
