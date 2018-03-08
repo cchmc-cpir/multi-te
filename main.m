@@ -12,6 +12,43 @@
 % NOTE: This program has options for manual and automatic definition of input and output
 % filenames/locations. Carefully review defaults if you aren't sure if they are compatible with your
 % datasets/workflow.
+%
+% The following directory tree shows how files should be structured for best results.
+%   * DATA_DIRECTORY is the top-level path for the use of this script. Note: this program does NOT
+%     need to be in the same path. This script (multi-te/main.m) will prompt the user to specify the
+%     directories that should be parsed.
+%   * SCAN_DATA_PATH content should contain sub-directories for each set of MRI scan datafiles
+%     (acqp, traj, method, fid, etc.)
+%   * PROCESSED_PATH content will be created as needed during the course of the analysis
+%
+% DATA_DIRECTORY
+% ??? SCAN_DATA_PATH
+% ?   ??? SCAN_DATA_1
+% ?   ??? SCAN_DATA_2
+% ?   ??? SCAN_DATA_N
+% ?        ??? acqp
+% ?        ??? traj
+% ?        ??? method
+% ?        ??? fid
+% ?        ??? ...
+% ??? PROCESSED_PATH
+% ?   ??? SCAN_DATA_1_PROCESSED    NOTE: "SCAN_DATA_1" here means the same directory name as the
+% ?   ??? SCAN_DATA_2_PROCESSED    sub-directories the SCAN_DATA_PATH directory above for contin-
+% ?   ??? SCAN_DATA_N_PROCESSED    uity in the processing workflow. 
+% ?        ??? GATING
+% ?        ?   ??? gating_file_1
+% ?        ?   ??? gating_file_2
+% ?        ?   ??? ...
+% ?        ??? RECONSTRUCTION
+% ?        ?   ??? recon_file_1
+% ?        ?   ??? recon_file_2
+% ?        ?   ??? ...
+% ?        ??? MAPPING
+% ?        ?   ??? map_file_1
+% ?        ?   ??? map_file_2
+% ?        ?   ??? ...
+% ?        ??? scan_report.log (any additional information on this particular scan)
+% ??? readme.txt (or any other additional files relating to the dataset)
 
 
 %% ask to clear workspace if already populated
@@ -24,9 +61,9 @@ if ~isempty(who)
 end
     
 
-%% start program timer
+%% capture program start time
 
-timeNow = datetime('now');
+timeStart = datetime('now');
 
 
 %% read YAML input file (input.yml)
@@ -43,8 +80,7 @@ end
 %       ...structure as unit tests?
 
 
-%% select data directory
-
+%% Select top-level data directory
 
 % notify user that having all data files in the same directory is a good idea
 fprintf('\nNOTE: For ease of use, have the FID, ACQP, trajectory, and method files in one folder.')
@@ -154,7 +190,7 @@ while ~exist('OUTPUT_MODE', 'var') || isempty(OUTPUT_MODE)
     switch OUTPUT_MODE
         case 'Automatically'
             OUT_PATH = fullfile(DATA_PATH, '/data/output/');
-            OUT_PREFIX = datestr(timeNow, 'yyyy-mm-dd_HH-MM-SS'); % date prefix for output file names
+            OUT_PREFIX = datestr(timeStart, 'yyyy-mm-dd_HH-MM-SS'); % date prefix for output file names
         case 'Manually'
             OUT_PATH = uigetdir('', 'Choose output directory');
             OUT_PREFIX = inputdlg('Enter a prefix for output files:');
@@ -254,7 +290,7 @@ if configStruct.mode.log
 
     % add file header
     fprintf(logFileID, '- - - MULTI-TE - - -');
-    fprintf(logFileID, '%s', datestr(timeNow, 'yyyy-mm-dd HH:MM:SS'));
+    fprintf(logFileID, '%s', datestr(timeStart, 'yyyy-mm-dd HH:MM:SS'));
     fprintf(logFileID, '\n\nINPUT PARAMS:\n\n');
 
     % copy YAML input file to log and add new information
