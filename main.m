@@ -13,7 +13,8 @@
 % filenames/locations. Carefully review defaults if you aren't sure if they are compatible with your
 % datasets/workflow.
 %
-% The following directory tree shows how files should be structured for best results.
+% The following directory tree shows how files should be structured for best results. The
+% 'automatic' settings in the program setup process will place things this way.
 %   * DATA_DIRECTORY is the top-level path for the use of this script. Note: this program does NOT
 %     need to be in the same path. This script (multi-te/main.m) will prompt the user to specify the
 %     directories that should be parsed.
@@ -32,7 +33,7 @@
 % |        |--- fid
 % |        |--- ...
 % |--- PROCESSED_PATH
-% |   |--- SCAN_DATA_1_PROCESSED    NOTE: "SCAN_DATA_1" here means the same directory name as the
+% |   |--- SCAN_DATA_1_PROCESSED    NOTE: 'SCAN_DATA_1' here means the same directory name as the
 % |   |--- SCAN_DATA_2_PROCESSED    sub-directories the SCAN_DATA_PATH directory above for contin-
 % |   |--- SCAN_DATA_N_PROCESSED    uity in the processing workflow. 
 % |        |--- GATING
@@ -68,27 +69,34 @@ timeStart = datetime('now');
 
 %% read YAML input file (input.yml)
 
-% add yaml-matlab tool file path
-addpath('./yaml-matlab');
+% add paths to use and test YAML input
+addpath('./utils/yaml-matlab');
+addpath('./tests');
 
 while ~exist('configStruct', 'var')
     configFile = './input.yml';
     configStruct = ReadYaml(configFile);
 end
 
-% (ROUTINE NEEDED: examine YAML file for any missing entries that will lead to program malfunction)
-%       ...structure as unit tests?
+% run a unit test to ensure the input file exists and is correctly formatted
+import matlab.unittest.TestSuite;
+suiteClass = TestSuite.fromClass(?SetupTest);
+testResult = run(suiteClass);
+
+if ~isequal(testResult.Passed, true)
+    error('One or more fields in the input struct are incorrect. Revise inputs and try again.');
+end
 
 
 %% Select top-level data directory
 
-% notify user that having all data files in the same directory is a good idea
-fprintf('\nNOTE: For ease of use, have the FID, ACQP, trajectory, and method files in one folder.')
+% notify user that having all data files in the same directories is a good idea
+fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.')
 
 while ~exist('DATA_PATH', 'var')
-    DATA_PATH = uigetdir('', 'Choose data directory');
+    DATA_PATH = uigetdir('', 'Choose top-level directory');
     if ~isa(DATA_PATH, 'char') % catches exit state of 0 (if action is cancelled)
-        QUIT = questdlg('No file selected. Quit or continue?', 'No files selected', ...
+        QUIT = questdlg('No path selected. Quit or continue?', 'No path selected', ...
             'Continue', 'Quit', 'Continue');
         switch QUIT
             case 'Quit'
@@ -207,6 +215,7 @@ if ~exist(fullOutputPath, 'dir')
 end
 
 
+%for n = 1:length(
 %% retrospective gating
 
 if configStruct.mode.gate

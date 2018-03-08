@@ -5,6 +5,6 @@
 
 import matlab.unittest.TestSuite;
 
-suiteClass = TestSuite.fromFolder(pwd);
+suiteClass = TestSuite.fromClass(?SetupTest);
 result = run(suiteClass);
 disp(result);

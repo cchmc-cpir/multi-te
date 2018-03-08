@@ -8,10 +8,10 @@ classdef SetupTest < matlab.unittest.TestCase
     
     methods (Test)
         function testYamlLoad(testCase)
-            addpath('../yaml-matlab');
+            addpath('./utils/yaml-matlab');
             
             % exist(name) returns 2 if the file specified by 'name' exists.
-            configFileExists = exist('../input.yml', 'file');
+            configFileExists = exist('./input.yml', 'file');
             
             % verify file exists at the correct place on the tree
             testCase.verifyEqual(configFileExists, 2)
@@ -19,8 +19,8 @@ classdef SetupTest < matlab.unittest.TestCase
             
         
         function testYamlInputs(testCase)
-            addpath('../yaml-matlab');
-            configStruct = ReadYaml('../input.yml');
+            addpath('./utils/yaml-matlab');
+            configStruct = ReadYaml('./input.yml');
             
             % mode
             testCase.verifyEqual(class(configStruct.mode.gate), 'logical');
