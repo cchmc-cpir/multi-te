@@ -22,7 +22,7 @@
 %     (acqp, traj, method, fid, etc.)
 %   * PROCESSED_PATH content will be created as needed during the course of the analysis
 %
-% DATA_DIRECTORY
+% TOP_PATH
 % |--- SCAN_DATA_PATH
 % |   |--- SCAN_DATA_1
 % |   |--- SCAN_DATA_2
@@ -62,6 +62,12 @@ if ~isempty(who)
 end
     
 
+%% add paths to 3rd party utility classes/functions
+
+addpath('./tools/yaml-matlab');
+addpath('./tools/uigetmult');
+
+
 %% capture program start time
 
 timeStart = datetime('now');
@@ -70,31 +76,20 @@ timeStart = datetime('now');
 %% read YAML input file (input.yml)
 
 % add paths to use and test YAML input
-addpath('./utils/yaml-matlab');
-addpath('./tests');
+addpath('./tools/yaml-matlab');
 
 while ~exist('configStruct', 'var')
     configFile = './input.yml';
     configStruct = ReadYaml(configFile);
 end
 
-% run a unit test to ensure the input file exists and is correctly formatted
-import matlab.unittest.TestSuite;
-suiteClass = TestSuite.fromClass(?SetupTest);
-testResult = run(suiteClass);
-
-if ~isequal(testResult.Passed, true)
-    error('One or more fields in the input struct are incorrect. Revise inputs and try again.');
-end
-
 
 %% Select top-level data directory
 
-% notify user that having all data files in the same directories is a good idea
-fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.')
-
-while ~exist('DATA_PATH', 'var')
-    DATA_PATH = uigetdir('', 'Choose top-level directory');
+while ~exist('DATA_PATH', 'var') || ~isa(DATA_PATH, 'char')
+    % notify user that having all data files in the same directories is a good idea
+    fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n')
+    DATA_PATH = uigetdir('', 'Choose data directory');
     if ~isa(DATA_PATH, 'char') % catches exit state of 0 (if action is cancelled)
         QUIT = questdlg('No path selected. Quit or continue?', 'No path selected', ...
             'Continue', 'Quit', 'Continue');
@@ -107,6 +102,16 @@ while ~exist('DATA_PATH', 'var')
     end
 end
 
+% store the top-level directory as the parent of the user-selected DATA_PATH
+TOP_PATH = fileparts(DATA_PATH);
+
+
+%% select datasets
+
+% select the datasets in DATA_PATH to process
+while ~exist('DATASETS', 'var') || isempty(DATA_SETS)
+    DATASETS = uigetmult
+end
 
 %% select data files
 
@@ -219,12 +224,13 @@ end
 %% retrospective gating
 
 if configStruct.mode.gate
-    % add gating folder path
-    addpath('./gating');
-
-    % perform gating operation
+    % record gating start time
     gateStartTime = tic;
     
+    % import from gating package
+    import gating.retrogatingleadmag
+    
+    % gating operation
     retrogatingleadmag( ...
         configStruct.settings.num_projections, ...
         configStruct.settings.num_cut_projections, ...
@@ -239,6 +245,7 @@ if configStruct.mode.gate
         OUT_PREFIX ...
     );
     
+    % record gating time elapsed
     gateTimeElapsed = toc(gateStartTime);
 end
 
@@ -246,11 +253,12 @@ end
 %% image reconstruction
 
 if configStruct.mode.reconstruct
-    % add reconstruction folder path
-    addpath('./reconstruction');
-
-    % perform image reconstruction
+    % record reconstruction start time
     reconStartTime = tic;
+    
+    % import from reconstruction package
+    import reconstruction.readbrukerconfigs
+    import reconstruction.multitesdc
     
     % read Bruker output files (ACQP, METHOD) to make trajectory corrections
     readbrukerconfigs( ...
@@ -265,7 +273,7 @@ if configStruct.mode.reconstruct
         configStruct.settings.zero_filling ...
     );
     
-    % image reconstruction
+    % perform image reconstruction
     multitesdc( ...
         DATA_PATH, ...
         filename, ...
@@ -273,6 +281,7 @@ if configStruct.mode.reconstruct
         configStruct.num_proj ...
     );
 
+    % record reconstruction time elapsed
     reconTimeElapsed = toc(reconStartTime);
 end
 
@@ -280,12 +289,15 @@ end
 %% parameter mapping
 
 if configStruct.mode.map
-    % add mapping folder path
-    addpath('./mapping');
-
-    % perform image mapping
+    % record mapping start time
     mapStartTime = tic;
+    
+    % import from mapping package
+    import mapping.T2StarMap_working
+    
     % mapping(PARAM1, PARAM2, PARAM3, ...);
+    
+    % record mapping time elapsed
     mapTimeElapsed = toc(mapStartTime);
 end
 

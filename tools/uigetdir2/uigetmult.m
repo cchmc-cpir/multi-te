@@ -1,4 +1,4 @@
-function [pathname] = uigetdir2(start_path, dialog_title)
+function [pathname] = uigetmult(start_path, dialog_title)
 % Pick multiple directories and/or files
 
 import javax.swing.JFileChooser;
