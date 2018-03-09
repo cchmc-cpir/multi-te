@@ -24,8 +24,10 @@ Performs reconstrcution of MR images from gated k-space information. **Note:** t
 ---
 
 ## Organization & Operation
-
 This package operates with a `main` file that accepts several user inputs in order execute a full processing routine for a selected dataset. This can be tuned with a simple input file written in YAML. Alternatively, the `gating`, `mapping`, and `reconstruction` packages can be used separately, as they are self contained. If you wish to write a different flavor of `main` or just use the sub-packages from the command line, you should be able to do so. Use the `help` command to see the contents of each package folder (e.g. `help gating`).
+
+### Testing
+This package contains unit tests that can be run to make sure things still behave as expected. New tests can be easily written to fit your needs.
 
 ### YAML-Matlab
 This project uses an input file written in [YAML](http://yaml.org/) to simplify execution and reduce hard-coding. The YAML file is read using [YAMLMatlab](https://code.google.com/archive/p/yamlmatlab/)
