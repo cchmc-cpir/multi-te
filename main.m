@@ -109,9 +109,28 @@ TOP_PATH = fileparts(DATA_PATH);
 %% select datasets
 
 % select the datasets in DATA_PATH to process
-while ~exist('DATASETS', 'var') || isempty(DATA_SETS)
-    DATASETS = uigetmult
+while ~exist('DATASETS', 'var') || isempty(DATASETS)
+    DATASETS = uigetmult(DATA_PATH);
+    if isempty(DATASETS)
+        QUIT = questdlg('No datasets selected. Quit or continue?', 'No datasets selected', ...
+            'Continue', 'Quit', 'Continue');
+        switch QUIT
+            case 'Quit'
+                return;
+            case 'Continue'
+                clear DATASETS;
+        end
+    end
 end
+
+
+%% data file selection from specified datasets
+
+while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
+    INPUT_MODE = questdlg('Select ACQP, METHOD, FID, and TRAJ files automatically or manually?', ...
+        'Selection mode', 'Manually', 'Automatically', 'Quit');
+end
+
 
 %% select data files
 
@@ -220,7 +239,6 @@ if ~exist(fullOutputPath, 'dir')
 end
 
 
-%for n = 1:length(
 %% retrospective gating
 
 if configStruct.mode.gate
