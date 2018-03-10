@@ -86,18 +86,10 @@ end
 
 %% Select scan data directory
 
-<<<<<<< Updated upstream
 while ~exist('DATA_PATH', 'var') || ~isa(DATA_PATH, 'char')
     % notify user that having all data files in the same directories is a good idea
     fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n')
     DATA_PATH = uigetdir('', 'Choose data directory');
-=======
-% notify user that having all data files in the same directories is a good idea
-fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n')
-
-while ~exist('DATA_PATH', 'var')
-    DATA_PATH = uigetdir('', 'Choose scan data directory');
->>>>>>> Stashed changes
     if ~isa(DATA_PATH, 'char') % catches exit state of 0 (if action is cancelled)
         QUIT = questdlg('No path selected. Quit or continue?', 'No path selected', ...
             'Continue', 'Quit', 'Continue');
