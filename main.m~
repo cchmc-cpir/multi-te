@@ -61,13 +61,13 @@ addpath('./control'); % checkselection.m
 
 %% startup
 
-% display fun program banner
+% dfprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n')
+isplay fun program banner
 displaybanner;
 
 % notify user that having all data files in the same directories is a good idea
 fprintf('\nThis program is designed to perform image processing on multi-TE UTE MRI data.');
 fprintf('\nSettings can be changed from the input.yml file in the top-level directory.\n');
-fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n')
 
 
 %% ask to clear workspace if already populated
@@ -105,6 +105,8 @@ while ~exist('DATA_PATH', 'var') || ~isa(DATA_PATH, 'char')
     end
 end
 
+
+
 % store the top-level directory as the parent of the user-selected DATA_PATH
 TOP_PATH = fileparts(DATA_PATH);
 
@@ -113,9 +115,8 @@ TOP_PATH = fileparts(DATA_PATH);
 
 % select the datasets in DATA_PATH to process
 while ~exist('DATASETS', 'var') || isempty(DATASETS)
-    DATASETS = uigetmult(DATA_PATH, 'Select dataset folders');
-    if invalidselection(DATASETS, 'cell')
-        clear DATASETS
+    DATASETS = uigetmult(DATA_PATH);
+    if invalidselection(DATASETS, 'char')
         return;
     end
 end
@@ -146,25 +147,25 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
             for n = 1:length(DATASETS)
                 dataStruct(n).acqpPath = uigetfile({'*.*', 'All Files (*.*)'}, ...
                     'Choose ACQP', DATASETS(n));
-                if invalidselection(datastruct(n).acqpPath, 'cell')
+                if invalidselection(datastruct(n).acqpPath)
                     return;
                 end
 
                 dataStruct(n).trajPath = uigetfile({'*.*', 'All Files (*.*)'}, ...
                     'Choose TRAJ', DATASETS(n));
-                if invalidselection(datastruct(n).trajPath, 'cell')
+                if invalidselection(datastruct(n).trajPath)
                     return;
                 end
 
                 dataStruct(n).methPath = uigetfile({'*.*', 'All Files (*.*)'}, ...
                     'Choose METH', DATASETS(n));
-                if invalidselection(datastruct(n).methPath, 'cell')
+                if invalidselection(datastruct(n).methPath)
                     return;
                 end
 
                 dataStruct(n).fidPath = uigetfile({'*.*', 'All Files (*.*)'}, ...
                     'Choose FID', DATASETS(n));
-                if invalidselection(datastruct(n).fidPath, 'cell')
+                if invalidselection(datastruct(n).fidPath)
                     return;
                 end
             end
@@ -179,17 +180,13 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
 end
 
 
-%% check for file existence
+%% check for empty datasets
 
 for n = 1:length(dataStruct)
-    checkACQP = exist(char(dataStruct(n).acqpPath), 'file');
-    checkTraj = exist(char(dataStruct(n).trajPath), 'file');
-    checkMeth = exist(char(dataStruct(n).methPath), 'file');
-    checkFID = exist(char(dataStruct(n).fidPath), 'file');
-    
-    if checkACQP || checkTraj || checkMeth || checkFID
-        error('One or more datafiles is not properly specified/does not exist.');
-    end
+    isempty(dataStruct(n).acqpPath);
+    isempty(dataStruct(n).trajPath);
+    isempty(dataStruct(n).methPath);
+    isempty(dataStruct(n).fidPath);
 end
 
 
@@ -197,29 +194,25 @@ end
 
 while ~exist('OUTPUT_MODE', 'var') || isempty(OUTPUT_MODE)
     OUTPUT_MODE = questdlg('Define output location and prefix automatically or manually?', ...
-        'Selection mode', 'Manually', 'Automatically', 'Quit', 'Quit');
+        'Selection mode', 'Manually', 'Automatically', 'Quit');
     switch OUTPUT_MODE
         case 'Automatically'
             pathParts = strsplit(DATA_PATH, filesep); % filesep should make this platform agnostic
-            TOP_PATH = strjoin(pathParts(1:end-1), filesep);
+            OUT_PATH = fullfile(DATA_PATH, '/data/output/');
             OUT_PREFIX = datestr(timeStart, 'yyyy-mm-dd_HH-MM-SS'); % date prefix
         case 'Manually'
-            TOP_PATH = uigetdir('', 'Choose output directory');
+            OUT_PATH = uigetdir('', 'Choose output directory');
             OUT_PREFIX = inputdlg('Enter a prefix for output files:');
         case 'Quit'
             return
-        otherwise % if the user closes the window
-            if invalidselection(DATA_PATH, 'char')
-                return;
-            end
     end
 end
 
-OUT_PATH = fullfile(TOP_PATH, 'processed_data');
+fullOutputPath = strcat(OUT_PATH, '/', OUT_PREFIX);
 
 % safely create output directory for this execution
-if ~exist(OUT_PATH, 'dir')
-    mkdir(OUT_PATH);
+if ~exist(fullOutputPath, 'dir')
+    mkdir(fullOutputPath);
 end
 
 
@@ -308,7 +301,7 @@ end
 
 if configStruct.mode.log
     % define log file path and open for writing
-    logFilePath = fullfile(OUT_PATH, strcat(OUT_PREFIX, '.log'));
+    logFilePath = fullfile(fullOutputPath, strcat(OUT_PREFIX, '.log'));
     logFileID = fopen(logFilePath, 'w');
 
     % add file header
@@ -340,4 +333,4 @@ end
 %% finish execution
 
 fprintf('\nExecution finished: << %f sec >>\n', timeElapsed);
-fprintf('Output available at %s\n', OUT_PATH);
+fprintf('Output available at %s\n', fullOutputPath);
