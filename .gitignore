@@ -8,7 +8,9 @@
 
 # MRI (Bruker) data files
 acqp
-
 fid
 traj
 method
+
+% backup files
+*~
