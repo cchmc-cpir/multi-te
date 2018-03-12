@@ -30,7 +30,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
     
     %% set output path + file
     
-    OUT_PATH = strcat(outputDir, '/', outputPrefix);
+    %outputDir = strcat(outputDir, '/', outputPrefix);
 
 
     %% echo time specification
@@ -162,8 +162,10 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         % write expiration data to file
         kDataExp = kData(:, :, selectVectorExp);
         numProjExp = size(kDataExp, 3);
-        fileID = fopen(fullfile(OUT_PATH, strcat(['fid_expiration_', ...
+        fileID = fopen(fullfile(outputDir, strcat(['fid_expiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
+        disp(fullfile(outputDir, strcat(['fid_expiration_', num2str(ECHO_TIMES{echoIndex})])))
+        disp(fileID)
         fwrite(fileID, kDataExp, 'int32');
         fclose(fileID);
 
@@ -179,7 +181,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         trajectoryExp = trajectory(:, :, selectVectorExp);
 
         % write expiration trajectory data to file
-        fileID = fopen(fullfile(OUT_PATH, strcat(['traj_expiration_', ...
+        fileID = fopen(fullfile(outputDir, strcat(['traj_expiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
         fwrite(fileID, trajectoryExp, 'double');
         fclose(fileID);
@@ -187,7 +189,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         % write inspiration data to file
         kDataInsp = kData(:, :, selectVectorInsp);
         numProjInsp = size(kDataInsp, 3);
-        fileID = fopen(fullfile(OUT_PATH, strcat(['fid_inspiration_', ...
+        fileID = fopen(fullfile(outputDir, strcat(['fid_inspiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
         fwrite(fileID, kDataInsp, 'int32');
         fclose(fileID);
@@ -196,7 +198,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         trajectoryInsp = trajectory(:, :, selectVectorInsp);
 
         % write inspiration trajectory data to file
-        fileID = fopen(fullfile(OUT_PATH, strcat(['traj_inspiration_', ...
+        fileID = fopen(fullfile(outputDir, strcat(['traj_inspiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
         fwrite(fileID, trajectoryInsp, 'double');
         fclose(fileID);

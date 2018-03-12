@@ -139,7 +139,7 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
             for n = 1:length(DATASETS)
                 dataStruct(n).ACQP_PATH = fullfile(DATASETS(n), 'acqp');
                 dataStruct(n).TRAJ_PATH = fullfile(DATASETS(n), 'traj');
-                dataStruct(n).METH_PATH = fullfile(DATASETS(n), 'meth');
+                dataStruct(n).METH_PATH = fullfile(DATASETS(n), 'method');
                 dataStruct(n).FID_PATH = fullfile(DATASETS(n), 'fid');
             end
         case 'Manually'
@@ -172,7 +172,7 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
             clear INPUT_MODE;
             return
         otherwise % if the user closes the window
-            if invalidselection(DATA_PATH, 'char')
+            if invalidselection(DATA_PATH, 'char') % might not be the correct path variable...
                 return;
             end
     end
@@ -187,7 +187,7 @@ for n = 1:length(dataStruct)
     checkMeth = exist(char(dataStruct(n).METH_PATH), 'file');
     checkFID = exist(char(dataStruct(n).FID_PATH), 'file');
     
-    if checkACQP || checkTraj || checkMeth || checkFID
+    if ~checkACQP || ~checkTraj || ~checkMeth || ~checkFID
         error('One or more datafiles is not properly specified/does not exist.');
     end
 end
@@ -215,12 +215,26 @@ while ~exist('OUTPUT_MODE', 'var') || isempty(OUTPUT_MODE)
     end
 end
 
-% define output path in proper location
+% define top-level output path in proper locations
 OUT_PATH = fullfile(TOP_PATH, 'processed_data');
 
-% safely create output directory for this execution
+% safely create top-level output directory for this execution
 if ~exist(OUT_PATH, 'dir')
     mkdir(OUT_PATH);
+end
+
+% preallocate
+SCAN_PATHS = cell(length(dataStruct));
+
+% define output paths for each dataset
+for n = 1:length(dataStruct)
+    SCAN = strsplit(char(DATASETS(n)), filesep);
+    SCAN_PATHS(n) = fullfile(OUT_PATH, strcat(SCAN(end), '_processed'));
+    
+    % safely create output directories for each dataset
+    if ~exist(char(SCAN_PATHS(n)), 'dir')
+        mkdir(char(SCAN_PATHS(n)));
+    end
 end
 
 
@@ -243,9 +257,9 @@ if configStruct.mode.gate
             configStruct.settings.exp_threshold, ...
             configStruct.settings.insp_threshold, ...
             configStruct.settings.echo_times, ...
-            DATA_PATH, ...
-            dataStruct(n).FID_PATH, ...
-            OUT_PATH, ...
+            char(DATASETS(n)), ...
+            char(dataStruct(n).FID_PATH), ...
+            char(SCAN_PATHS(n)), ...
             OUT_PREFIX ...
         );
     end
