@@ -29,5 +29,8 @@ This package operates with a `main` file that accepts several user inputs in ord
 ### Testing
 This package contains unit tests that can be run to make sure things still behave as expected. New tests can be easily written to fit your needs.
 
+### Bugs
+Please report any bugs/weird behavior by creating an issue.
+
 ### YAML-Matlab
 This project uses an input file written in [YAML](http://yaml.org/) to simplify execution and reduce hard-coding. The YAML file is read using [YAMLMatlab](https://code.google.com/archive/p/yamlmatlab/)
