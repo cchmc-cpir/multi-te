@@ -15,7 +15,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     %   fidPoints:          _____
     %   numPointsShift:     _____
     %   leadingCutProj:     number of projections cut from leading edge
-    %   endingCutProj:      numbe rof projections cut from ending edge
+    %   endingCutProj:      number of projections cut from ending edge
     %   numIter:            number of iterations (SDC)
     %   oSF:                _____ (SDC)
     %   verbose:            _____ (SDC)
