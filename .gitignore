@@ -1,5 +1,6 @@
 # data sub-directories (the ones with actual content; the root(s) need to stay)
 /data/output/
+/sample/
 
 # MATLAB-specific files
 *.asv
