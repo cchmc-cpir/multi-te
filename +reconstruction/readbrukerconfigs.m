@@ -25,23 +25,25 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
         testStr = char(acqpData{idx});
         if length(testStr) > 10
             if strcmp(testStr(1:11), '##$ACQ_size')
-                acqpReadFrames = str2double(acqpData(idx + 1));
+                acqpReadFrames = acqpData(idx + 1);
+                acqpReadFrames = regexp(acqpReadFrames, '\s+', 'split');
+                break;
             end
         end
     end
-    
+
     fclose(fileID);
-    numProj = acqpReadFrames(2) / numTE;
+    numProj = str2num(acqpReadFrames{1}{2}) / numTE;
     
     
     %% METHOD FILE PARSE
     
     % open METHOD file
     fileID = fopen(methPath);
-    
+
     % read from METHOD file
     line = fgetl(fileID);
-    
+
     % parse to Kx
     while ~strcmp(strtok(line, '='), '##$PVM_TrajKx')
         line = fgetl(fileID);
@@ -53,18 +55,18 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
     
     while ~strcmp(strtok(line, '='), '##$PVM_TrajKy')
         line = fgetl(fileID);
-        tmp = (str2double(line))';
+        tmp = (str2num(line))';
         trajKX(kXCount + 1:size(tmp, 1) + kXCount) = tmp;
         kXCount = kXCount + size(tmp, 1);
     end
-    
+
     % intitialize and store Ky information (parsing up to Kz)
     trajKY = zeros(numPoints);
     kYCount = 0;
     
     while ~strcmp(strtok(line, '='), '##$PVM_TrajKz')
         line = fgetl(fileID);
-        tmp = (str2double(line))';
+        tmp = (str2num(line))';
         trajKY(kYCount + 1:size(tmp, 1) + kYCount) = tmp;
         kYCount = kYCount + size(tmp, 1);
     end
@@ -75,18 +77,25 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
     
     while ~strcmp(strtok(line, '='), '##$PVM_TrajBx')
         line = fgetl(fileID);
-        tmp = (str2double(line))';
-        trajKZ(kZCount + 1:size(tmp, 1) + kZCount) = temp;
-        kZCount = kZCount + size(temp, 1);
+        tmp = (str2num(line))';
+        trajKZ(kZCount + 1:size(tmp, 1) + kZCount) = tmp;
+        kZCount = kZCount + size(tmp, 1);
     end
     
     % close the METHOD file
     fclose(fileID);
     
     
+    %% define max trajectory values
+    
+    maxKX = max(trajKX);
+    maxKY = max(trajKY);
+    maxKZ = max(trajKZ);
+    
+    
     %% KEYHOLE
     
-    if strcmp(trajMode, 'keyhold')
+    if strcmp(trajMode, 'keyhole')
         numViews = numProj;
         keys = interlvs;
         halfNumViews = int32((numViews - 1) / 2);
@@ -126,12 +135,12 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
         numViews = numProj;
         halfNumViews = numViews / 2;
         r = zeros(numViews, 1);             % could likely move these outside of if/else block
-        p = zeros(numviews, 1);
+        p = zeros(numViews, 1);
         s = zeros(numViews, 1);
-        
+        whos
         for i = 1:numViews
-            s(i) = 2 * mod((i - 1) * phi(1), 1) - 1;
-            alpha= 2 * pi * mod((i - 1) * phi(2), 1);
+            s(i) = 2 * mod((i - 1) * phi{1}, 1) - 1;
+            alpha= 2 * pi * mod((i - 1) * phi{2}, 1);
             d = sqrt(1 - s(i) ^ 2);
             r(i) = d * cos(alpha);
             p(i) = d * sin(alpha);

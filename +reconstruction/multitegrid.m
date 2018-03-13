@@ -10,6 +10,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     %% setup calculated parameters
     
     realNumPoints = numPoints - numPointsShift; % actual number of points encoded
+    realNumProj = numProj - leadingCutProj - endingCutProj;
     
     
     %% read trajectory information
@@ -19,7 +20,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     fclose(fileID);
     
     % reshape trajectory data
-    trajData = reshape(trajData, [3, numPoints, numProj]);
+    trajData = reshape(trajData, [3, numPoints, numProj * 3]);
     
     % cut ending poins along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
@@ -30,17 +31,18 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     
     clear trajData r;
     
-    disp('Generating DCF for ', trajPath);
-    
     
     %% read pre-weights
     
-    DCFPath = fullfile(outPath, strcat('DCF_respmode'));
-    fileID = fopen(DCFPath, 'w');
+    DCFPath = fullfile(outPath, strcat('DCF_', respMode));
+    fileID = fopen(DCFPath);
     DCFData = squeeze(fread(fileID, inf, 'float32'));
     fclose(fileID);
+    % disp(length(DCFData))
+    % disp(realNumPoints)
+    % disp(realNumProj)
+    DCFData = reshape(DCFData, [realNumPoints, realNumProj]);
     
-    clear DCFData;
     
     
     %% read k-space data
@@ -70,6 +72,9 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
 
         %% rolloff kernel
 
+        % import grid3_MAT from grid3 package
+        import reconstruction.grid3.grid3_MAT;
+        
         % should fix the variable assignments here... not good to have them in this file
         delta = [1.0, 0.0];
         k_not = [0.0, 0.0, 0.0];
@@ -103,8 +108,8 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         %% apply rolloff kernel and crop
 
         gridData(rolloffKern > 0) = gridData(rolloffKern > 0) ./ rolloffKern(rolloffKern > 0);
-        xs = floor(effMatrix / 2 - effmatrix / 2 / alpha) + 1;
-        xe = floor(effMatrix / 2 - effmatrix / 2 / alpha);
+        xs = floor(effMatrix / 2 - effMatrix / 2 / alpha) + 1;
+        xe = floor(effMatrix / 2 - effMatrix / 2 / alpha);
         gridData = gridData(xs:xe, xs:xe, xs:xe);
 
 
@@ -112,7 +117,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
 
         dataOut = rot90(gridData, 2);
 
-        fileID = fopen(fullfile(outPath, strcat('reconstructed_img_', respMode, '.raw')));
+        fileID = fopen(fullfile(outPath, strcat('reconstructed_img_', respMode, '.raw')), 'w');
         fwrite(fileID, dataOut, 'float32');
         fclose(fileID);
     

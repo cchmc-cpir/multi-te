@@ -26,12 +26,18 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     %   Written by Jinbang Guo, Alex Cochran 2018.
 
     
+    %% add sdc3 and grid3 paths
+    
+    %addpath('.+reconstruction/sdc3');
+    %addpath('.+reconstruction/grid3');
+
+    
     %% respiration mode
     
     % specify respiration mode (inspiration/expiration)
-    if strfind(trajFile, 'inspiration')
+    if strfind(trajPath, 'inspiration')
         respMode = 'inspiration';
-    elseif strfind(trajFile, 'expiration')
+    elseif strfind(trajPath, 'expiration')
         respMode = 'expiration';
     else
         respMode = 'notspec';
@@ -41,18 +47,19 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     %% setup calculated parameter(s)/other local variables
     
     realNumPoints = numPoints - numPointsShift;
-    DCFPath = fullfile(outPath, strcat('DCF_respmode'));
+    DCFPath = fullfile(outPath, strcat('DCF_', respMode));
      
     
     %% load trajectory information
     
     fileID = fopen(trajPath);
+
     trajData = squeeze(fread(fileID, inf, 'double'));
     fclose(fileID);
     
-    % reshape trajectory data
-    trajData = reshape(trajData, [3, numPoints, numProj]);
-    
+    % reshape trajectory data                             ||
+    trajData = reshape(trajData, [3, numPoints, numProj * 3]); % CHANGED B/C OF SHAPE MISMATCH
+                                                        % ||
     % cut ending poins along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
     
@@ -60,13 +67,16 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
         + coords(3, realNumPoints, :) .^2);
     coords = coords ./ max(r(:)) / 2;
     
-    disp('Generating DCF for ', trajPath);
+    disp('Generating DCF');
      
     
     %% SDC calculations
     
     % add nested SDC directory to current path
-    addpath('./sdc3');
+    pwd
+    ls
+    %addpath('multi-te/+reconstruction/sdc3/');
+    import reconstruction.sdc3.sdc3_MAT;
     
     % define effMatrix
     ramPoints = numPoints - ramPointsMod;
@@ -93,10 +103,9 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     
     %% run reconstruction routine
     
-    % add nested grid3 directory to current path
-    addpath('./grid3');
+    import reconstruction.multitegrid;
     
-    disp(['Reconstructing ', newFilePath]);
+    disp('Reconstructing...');
     multitegrid( ...
         numPoints, ...
         numProj, ...
@@ -106,7 +115,6 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
         endingCutProj, ...
         numPointsShift, ...
         respMode, ...
-        trajPath, ...
         outPath, ...
         alpha, ...
         numTE, ...
@@ -114,7 +122,5 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
         trajPath, ...
         numThreads ...
     );
-
-
 end
 

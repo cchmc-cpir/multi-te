@@ -29,7 +29,7 @@ settings:
     insp_threshold:         0.15                    # percent
     echo_times:             [80, 200, 400]          # microseconds
     interleaves:            13                      # number of slice interleaves (keyhole)
-    phi:                    [0.46557123 0.68232780] # for 2D golden mean trajectory
+    phi:                    [0.46557123, 0.6823278] # for 2D golden mean trajectory
     resp_mode:              expiration              # 'inspiration' or 'expiration'
     alpha:                  2                       # gridding oversampling ratio
     beta:                   1                       # expansion factor ratio
@@ -37,4 +37,7 @@ settings:
     verbose:                true                    # ??? (sdc_multiTE.m)
     lead_cut_projections:   0                       # ??? (sdc_multiTE.m)
     end_cut_projections:    0                       # ??? (sdc_multiTE.m)
+    num_iterations:         25                      # ??? (sdc_multiTE.m)
+    ram_points_mod:         84                      # ??? (sdc_multiTE.m)
+    num_threads:            1                       # for grid3 calculations w/ pthread lib
 
