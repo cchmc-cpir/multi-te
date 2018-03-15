@@ -26,33 +26,6 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
     
     DATA_PATH = inputPath;
     DATA_FILE = inputFID;
-    
-    
-    %% set output path + file
-    
-    %outputDir = strcat(outputDir, '/', outputPrefix);
-
-
-    %% echo time specification
-
-    % designate the echo times of the images being gated
-    % units: microseconds
-    % example: 'Enter echo time 1 [us]: 080' --> echo time 1 is now 80 microseconds or 0.08 ms
-
-%     while ~exist('ECHO_TIMES', 'var')
-%         ECHO_TIMES = transpose(inputdlg({'Echo time 1', 'Echo time 2', 'Echo time 3'}));
-%         ECHO_TIMES = ECHO_TIMES(~cellfun('isempty', ECHO_TIMES));
-%         if isempty(ECHO_TIMES)
-%             QUIT = questdlg('No echo times specified. Quit or continue?', 'Incomplete input', ...
-%             'Continue', 'Quit', 'Continue');
-%             switch QUIT
-%                 case 'Quit'
-%                     return;
-%                 case 'Continue'
-%                     clear ECHO_TIMES;
-%             end
-%         end
-%     end
 
 
     %% confirm program configuration
@@ -164,8 +137,6 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         numProjExp = size(kDataExp, 3);
         fileID = fopen(fullfile(outputDir, strcat(['fid_expiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
-        disp(fullfile(outputDir, strcat(['fid_expiration_', num2str(ECHO_TIMES{echoIndex})])))
-        disp(fileID)
         fwrite(fileID, kDataExp, 'int32');
         fclose(fileID);
 

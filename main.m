@@ -112,10 +112,10 @@ TOP_PATH = fileparts(DATA_PATH);
 %% select datasets
 
 % select the datasets in DATA_PATH to process
-while ~exist('DATASETS', 'var') || isempty(DATASETS)
-    DATASETS = uigetmult(DATA_PATH, 'Select dataset folders');
-    if invalidselection(DATASETS, 'cell')
-        clear DATASETS
+while ~exist('DATASET_PATHS', 'var') || isempty(DATASET_PATHS)
+    DATASET_PATHS = uigetmult(DATA_PATH, 'Select dataset folders');
+    if invalidselection(DATASET_PATHS, 'cell')
+        clear DATASET_PATHS
         return;
     end
 end
@@ -123,12 +123,12 @@ end
 
 %% select datafiles
 
-% file path structure preallocation
+% scan data file path structure preallocation
 dataStruct = struct( ...
-    'ACQP_PATH', cell(1, length(DATASETS)), ...
-    'TRAJ_PATH', cell(1, length(DATASETS)), ...
-    'METH_PATH', cell(1, length(DATASETS)), ...
-    'FID_PATH', cell(1, length(DATASETS)) ...
+    'ACQP_PATH', cell(1), ...
+    'TRAJ_PATH', cell(1), ...
+    'METH_PATH', cell(1), ...
+    'FID_PATH', cell(1) ...
 );
 
 while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
@@ -136,34 +136,34 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
         'Selection mode', 'Manually', 'Automatically', 'Quit', 'Quit');
     switch INPUT_MODE
         case 'Automatically'
-            for n = 1:length(DATASETS)
-                dataStruct(n).ACQP_PATH = fullfile(DATASETS(n), 'acqp');
-                dataStruct(n).TRAJ_PATH = fullfile(DATASETS(n), 'traj');
-                dataStruct(n).METH_PATH = fullfile(DATASETS(n), 'method');
-                dataStruct(n).FID_PATH = fullfile(DATASETS(n), 'fid');
+            for n = 1:length(DATASET_PATHS)
+                dataStruct(n).ACQP_PATH = fullfile(DATASET_PATHS(n), 'acqp');
+                dataStruct(n).TRAJ_PATH = fullfile(DATASET_PATHS(n), 'traj');
+                dataStruct(n).METH_PATH = fullfile(DATASET_PATHS(n), 'method');
+                dataStruct(n).FID_PATH = fullfile(DATASET_PATHS(n), 'fid');
             end
         case 'Manually'
-            for n = 1:length(DATASETS)
+            for n = 1:length(DATASET_PATHS)
                 dataStruct(n).ACQP_PATH = uigetfile({'*.*', 'All Files (*.*)'}, ...
-                    'Choose ACQP', DATASETS(n));
+                    'Choose ACQP', DATASET_PATHS(n));
                 if invalidselection(datastruct(n).ACQP_PATH, 'cell')
                     return;
                 end
 
                 dataStruct(n).TRAJ_PATH = uigetfile({'*.*', 'All Files (*.*)'}, ...
-                    'Choose TRAJ', DATASETS(n));
+                    'Choose TRAJ', DATASET_PATHS(n));
                 if invalidselection(datastruct(n).TRAJ_PATH, 'cell')
                     return;
                 end
 
                 dataStruct(n).METH_PATH = uigetfile({'*.*', 'All Files (*.*)'}, ...
-                    'Choose METH', DATASETS(n));
+                    'Choose METH', DATASET_PATHS(n));
                 if invalidselection(datastruct(n).METH_PATH, 'cell')
                     return;
                 end
 
                 dataStruct(n).FID_PATH = uigetfile({'*.*', 'All Files (*.*)'}, ...
-                    'Choose FID', DATASETS(n));
+                    'Choose FID', DATASET_PATHS(n));
                 if invalidselection(datastruct(n).FID_PATH, 'cell')
                     return;
                 end
@@ -224,16 +224,16 @@ if ~exist(OUT_PATH, 'dir')
 end
 
 % preallocate
-SCAN_PATHS = cell(length(dataStruct));
+PROC_PATHS = cell(length(dataStruct));
 
 % define output paths for each dataset
 for n = 1:length(dataStruct)
-    SCAN = strsplit(char(DATASETS(n)), filesep);
-    SCAN_PATHS(n) = fullfile(OUT_PATH, strcat(SCAN(end), '_processed'));
+    SCAN = strsplit(char(DATASET_PATHS(n)), filesep);
+    PROC_PATHS(n) = fullfile(OUT_PATH, strcat(SCAN(end), '_processed'));
     
     % safely create output directories for each dataset
-    if ~exist(char(SCAN_PATHS(n)), 'dir')
-        mkdir(char(SCAN_PATHS(n)));
+    if ~exist(char(PROC_PATHS(n)), 'dir')
+        mkdir(char(PROC_PATHS(n)));
     end
 end
 
@@ -257,9 +257,9 @@ if configStruct.mode.gate
             configStruct.settings.exp_threshold, ...
             configStruct.settings.insp_threshold, ...
             configStruct.settings.echo_times, ...
-            char(DATASETS(n)), ...
+            char(DATASET_PATHS(n)), ...
             char(dataStruct(n).FID_PATH), ...
-            char(SCAN_PATHS(n)), ...
+            char(PROC_PATHS(n)), ...
             OUT_PREFIX ...
         );
     end
@@ -269,11 +269,70 @@ if configStruct.mode.gate
 end
 
 
+%% isolate and specify gated file paths
+
+% Get the full paths for each gated data file and organize them into sets (MATLAB structs) to enable
+% reconstruction of the gated data.
+
+% gated data file path structure preallocation
+gatedStruct = struct( ...
+    'inspiration', struct( ...
+        'FID', cell(1), ...
+        'TRAJ', cell(1)), ...
+    'expiration', struct( ...
+        'FID', cell(1), ...
+        'TRAJ', cell(1)) ...
+);
+
+for n = 1:length(dataStruct)
+    for m = 1:length(configStruct.settings.echo_times)
+        gatedStruct(n).inspiration.FID{m} = fullfile(char(PROC_PATHS(1)), ...
+            strcat('fid_inspiration_', num2str(configStruct.settings.echo_times{m})));
+        gatedStruct(n).inspiration.TRAJ{m} = fullfile(char(PROC_PATHS(1)), ...
+            strcat('traj_inspiration_', num2str(configStruct.settings.echo_times{m})));
+        gatedStruct(n).expiration.FID{m} = fullfile(char(PROC_PATHS(1)), ...
+            strcat('fid_expiration_', num2str(configStruct.settings.echo_times{m})));
+        gatedStruct(n).expiration.TRAJ{m} = fullfile(char(PROC_PATHS(1)), ...
+            strcat('traj_expiration_', num2str(configStruct.settings.echo_times{m})));
+    end
+end
+
+
 %% image reconstruction
+
+% Input files for reconstruction functionality are the gated trajectory/FID files produced during
+% the gating routine: one pair of inspiration and expiration gated files for each TE. The
+% respiration mode (inspiration/expiration) is user-specified. Therefore, the reconstruction routine
+% should run N times for each dataset, where N = # TE.
+%
+%   Ex (pseudocode):
+%
+%       configuration:
+%           Datasets:           2
+%           Respiration mode:   'expiration'
+%           Number of TE:       3
+%
+%       execution:
+%           reconstruction(dataset1_expiration_TE1)
+%           reconstruction(dataset1_expiration_TE2)
+%           reconstruction(dataset1_expiration_TE3)
+%           reconstruction(dataset2_expiration_TE1)
+%           reconstruction(dataset2_expiration_TE2)
+%           reconstruction(dataset2_expiration_TE3)   
 
 if configStruct.mode.reconstruct
     % record reconstruction start time
     reconStartTime = tic;
+    
+    % specify the gated files that will be used based upon respiration mode
+    switch configStruct.settings.resp_mode
+        case 'expiration'
+            gatedData = gatedStruct.expiration;
+        case 'inspiration'
+            gatedData = gatedStruct.inspiration;
+        otherwise
+            warning('Respiration mode not recognized. Results may be inaccurate.');
+    end
     
     % import from reconstruction package
     import reconstruction.readbrukerconfigs
@@ -281,7 +340,7 @@ if configStruct.mode.reconstruct
     
     % read Bruker output files (ACQP, METHOD) to make trajectory corrections
     readbrukerconfigs( ...
-        char(DATASETS(n)), ...
+        char(DATASET_PATHS(n)), ...
         char(dataStruct(n).ACQP_PATH), ...
         char(dataStruct(n).METH_PATH), ...
         length(configStruct.settings.echo_times), ...
@@ -291,27 +350,37 @@ if configStruct.mode.reconstruct
         configStruct.settings.phi, ...
         configStruct.settings.zero_filling ...
     );
-    
-    % perform image reconstruction
-    multitesdc( ...
-        char(dataStruct(n).FID_PATH), ...
-        char(dataStruct(n).TRAJ_PATH), ...
-        char(SCAN_PATHS(n)), ...
-        length(configStruct.settings.echo_times), ...
-        configStruct.settings.num_projections, ...
-        configStruct.settings.num_points, ...
-        configStruct.settings.fid_points, ...
-        configStruct.settings.num_threads, ...
-        configStruct.settings.num_points_shift, ...
-        configStruct.settings.lead_cut_projections, ... % check this
-        configStruct.settings.end_cut_projections, ... % check this
-        configStruct.settings.num_iterations, ... % check this
-        configStruct.settings.osf, ... % check this
-        configStruct.settings.verbose, ... % check this
-        configStruct.settings.ram_points_mod, ... % check this
-        configStruct.settings.alpha, ... % check this
-        configStruct.settings.beta ... % check this
-    );
+
+    %char(dataStruct(n).FID_PATH), ...
+    %char(dataStruct(n).TRAJ_PATH), ...
+
+    % perform image reconstruction for each set of gated FID and trajectory files
+    for n = 1:length(dataStruct)
+        for m = 1:length(configStruct.settings.echo_times)
+            disp(gatedData(n).FID{m})
+            disp(gatedData(n).TRAJ{m})
+            
+            multitesdc( ...
+                gatedData(n).FID{m}, ...
+                gatedData(n).TRAJ{m}, ...
+                char(PROC_PATHS(n)), ...
+                length(configStruct.settings.echo_times), ...
+                configStruct.settings.num_projections, ...
+                configStruct.settings.num_points, ...
+                configStruct.settings.fid_points, ...
+                configStruct.settings.num_threads, ...
+                configStruct.settings.num_points_shift, ...
+                configStruct.settings.lead_cut_projections, ... % check this
+                configStruct.settings.end_cut_projections, ... % check this
+                configStruct.settings.num_iterations, ... % check this
+                configStruct.settings.osf, ... % check this
+                configStruct.settings.verbose, ... % check this
+                configStruct.settings.ram_points_mod, ... % check this
+                configStruct.settings.alpha, ... % check this
+                configStruct.settings.beta ... % check this
+            );
+        end
+    end
 
     % record reconstruction time elapsed
     reconTimeElapsed = toc(reconStartTime);
@@ -319,6 +388,9 @@ end
 
 
 %% parameter mapping
+
+% Input files for mapping functionality are the *.raw images written during image reconstruction, 
+% one for each TE. This routine should therefore be run N times for each dataset, where N = # of TE.
 
 if configStruct.mode.map
     % record mapping start time
@@ -358,10 +430,19 @@ if configStruct.mode.log
     fprintf(logFileID, '\n-----------------------------------------------------------------------');
     fprintf(logFileID, '\n\nOUTPUT:\n');
     fprintf(logFileID, '\nData path: %s', DATA_PATH); 
-    fprintf(logFileID, '\nGating execution time: %f sec', gateTimeElapsed);
-    fprintf(logFileID, '\nReconstruction execution time: %f sec', reconTimeElapsed);
-    fprintf(logFileID, '\nT2* Mapping Execution time: %f sec', mapTimeElapsed);
-
+    
+    if configStruct.gate
+        fprintf(logFileID, '\nGating execution time: %f sec', gateTimeElapsed);
+    end
+    
+    if configStruct.reconstruct
+        fprintf(logFileID, '\nReconstruction execution time: %f sec', reconTimeElapsed);
+    end
+    
+    if configStruct.map
+        fprintf(logFileID, '\nT2* Mapping Execution time: %f sec', mapTimeElapsed);
+    end
+    
     % close the output file
     fclose(logFileID);
 end

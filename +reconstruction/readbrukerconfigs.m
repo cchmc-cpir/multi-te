@@ -137,7 +137,7 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
         r = zeros(numViews, 1);             % could likely move these outside of if/else block
         p = zeros(numViews, 1);
         s = zeros(numViews, 1);
-        whos
+
         for i = 1:numViews
             s(i) = 2 * mod((i - 1) * phi{1}, 1) - 1;
             alpha= 2 * pi * mod((i - 1) * phi{2}, 1);

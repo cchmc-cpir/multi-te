@@ -20,7 +20,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     fclose(fileID);
     
     % reshape trajectory data
-    trajData = reshape(trajData, [3, numPoints, numProj * 3]);
+    trajData = reshape(trajData, [3, numPoints, numProj]); % removed '* 3'
     
     % cut ending poins along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
@@ -29,7 +29,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         + coords(3, realNumPoints, :) .^2);
     coords = coords ./ max(r(:)) / 2;
     
-    clear trajData r;
+    %clear trajData r;
     
     
     %% read pre-weights
@@ -44,16 +44,18 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     DCFData = reshape(DCFData, [realNumPoints, realNumProj]);
     
     
-    
     %% read k-space data
     
     fileID = fopen(fidPath);
     kData = squeeze(fread(fileID, inf, 'int32')); % step-like scaling depending on 'SW_h'
     fclose(fileID);
-    
+    whos
+    disp(numTE)
+    disp(numProj)
+    disp(fidPoints)
     allData = reshape(kData, [2, fidPoints, numTE, numProj]);
     
-    clear kData;
+    %clear kData;
     
     
     for n = 1:numTE
@@ -63,18 +65,19 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
             (leadingCutProj + 1):(numProj - endingCutProj)));
         
         %% grid3 routine
-
-        effMatrix = (realNumPoints - ramPoints) * 2 * alpha;
-        gridData = grid3_MAT(data, coords, DCFData, effMatrix, numThreads);
         
-        clear data;
-
-
-        %% rolloff kernel
-
         % import grid3_MAT from grid3 package
         import reconstruction.grid3.grid3_MAT;
         
+        effMatrix = (realNumPoints - ramPoints) * 2 * alpha;
+        gridData = grid3_MAT(data, coords, DCFData, effMatrix, numThreads); % effMatrix might be inv
+        whos
+        %clear data;
+        % SOMEWHERE BELOW HERE, GRIDDATA IS OVERWRITTEN TO AN EMPTY 3x3x3 MATRIX. UP TO HERE IT IS A
+        % 4D MATRIX, AS IT SHOULD BE
+
+        %% rolloff kernel
+
         % should fix the variable assignments here... not good to have them in this file
         delta = [1.0, 0.0];
         k_not = [0.0, 0.0, 0.0];
@@ -104,15 +107,23 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         rolloffKern = fftshift(rolloffKern, 3);
         rolloffKern = abs(rolloffKern);
 
-
+        disp('after rolloff')
+        whos
+        % BELOW HERE, CHECK WHY GRIDDATA IS SET TO A 0x0x0 MATRIX
+        
         %% apply rolloff kernel and crop
 
         gridData(rolloffKern > 0) = gridData(rolloffKern > 0) ./ rolloffKern(rolloffKern > 0);
         xs = floor(effMatrix / 2 - effMatrix / 2 / alpha) + 1;
         xe = floor(effMatrix / 2 - effMatrix / 2 / alpha);
-        gridData = gridData(xs:xe, xs:xe, xs:xe);
+        disp('after applying rolloff')
+        whos
+        disp(xs)
+        disp(xe)
+        %gridData = gridData(xs:xe, xs:xe, xs:xe); % here next
+        gridData = single(abs(gridData)); % magnitude, float32
 
-
+        
         %% write output to file
 
         dataOut = rot90(gridData, 2);
@@ -121,7 +132,8 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         fwrite(fileID, dataOut, 'float32');
         fclose(fileID);
     
-        
+        disp('final')
+        whos
     end
 end
 

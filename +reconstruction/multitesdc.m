@@ -5,13 +5,16 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     %   reconstruction after interpolation onto a Cartesian grid. For use with data from interleaved
     %   multi-TE UTE sequences.
     %
+    %   This script writes the DCF (density compensation file) that is to be used during the
+    %   reconstruction process.
+    %
     %   fidPath:            FID file path
     %   trajPath:           trajectory file path
     %   outPath:            output path
     %   outPrefix:          output filename prefix (for organization)
     %   numTE:              number of echo tims
     %   numProj:            number of projections
-    %   numPoints:          number of points on each projectoin
+    %   numPoints:          number of points on each projection
     %   fidPoints:          _____
     %   numPointsShift:     _____
     %   leadingCutProj:     number of projections cut from leading edge
@@ -56,9 +59,9 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
 
     trajData = squeeze(fread(fileID, inf, 'double'));
     fclose(fileID);
-    
+    whos
     % reshape trajectory data                             ||
-    trajData = reshape(trajData, [3, numPoints, numProj * 3]); % CHANGED B/C OF SHAPE MISMATCH
+    trajData = reshape(trajData, [3, numPoints, numProj]); % CHANGED B/C OF SHAPE MISMATCH [changed back]
                                                         % ||
     % cut ending poins along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
@@ -72,9 +75,8 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     
     %% SDC calculations
     
-    % add nested SDC directory to current path
-    pwd
-    ls
+    disp(outPath)
+    
     %addpath('multi-te/+reconstruction/sdc3/');
     import reconstruction.sdc3.sdc3_MAT;
     
