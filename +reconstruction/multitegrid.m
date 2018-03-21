@@ -22,7 +22,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     % reshape trajectory data
     trajData = reshape(trajData, [3, numPoints, numProj]); % removed '* 3'
     
-    % cut ending poins along one spoke
+    % cut ending points along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
     
     r = sqrt(coords(1, realNumPoints, :) .^ 2 + coords(2, realNumPoints, :) .^ 2 ...
@@ -50,18 +50,20 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     kData = squeeze(fread(fileID, inf, 'int32')); % step-like scaling depending on 'SW_h'
     fclose(fileID);
     whos
+    disp(fidPath)
     disp(numTE)
     disp(numProj)
     disp(fidPoints)
-    allData = reshape(kData, [2, fidPoints, numTE, numProj]);
+    disp(size(kData))
+    allData = reshape(kData, 2, fidPoints, numProj); % REMOVED numTE
     
     %clear kData;
     
     
-    for n = 1:numTE
-    
+    %for n = 1:numTE
+    disp(size(allData))
         % remove singleton dimensions from the data
-        data = squeeze(allData(:, (numPointsShift + 1):numPoints, n, ...
+        data = squeeze(allData(:, (numPointsShift + 1):numPoints, ...
             (leadingCutProj + 1):(numProj - endingCutProj)));
         
         %% grid3 routine
@@ -134,6 +136,6 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     
         disp('final')
         whos
-    end
+    %end
 end
 

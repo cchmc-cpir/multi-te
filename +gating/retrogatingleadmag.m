@@ -163,6 +163,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         fileID = fopen(fullfile(outputDir, strcat(['fid_inspiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
         fwrite(fileID, kDataInsp, 'int32');
+        fprintf('\nEcho time: %f\nkDataInsp size: %f', ECHO_TIMES{echoIndex}, size(kDataInsp));
         fclose(fileID);
 
         % extract inspiration trajectory data
