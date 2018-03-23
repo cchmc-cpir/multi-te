@@ -48,76 +48,73 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
 
     allData = reshape(kData, 2, fidPoints, numProj); % REMOVED numTE
 
-    %for n = 1:numTE
-    disp(size(allData))
-        % remove singleton dimensions from the data
-        data = squeeze(allData(:, (numPointsShift + 1):numPoints, ...
-            (leadingCutProj + 1):(numProj - endingCutProj)));
-        
-        %% grid3 routine
-        
-        % import grid3_MAT from grid3 package
-        import reconstruction.grid3.grid3_MAT;
-        
-        effMatrix = (realNumPoints - ramPoints) * 2 * alpha;
-        disp('* * * * * effMatrix * * * * *');
-        disp(effMatrix)
-        gridData = grid3_MAT(data, coords, DCFData, effMatrix, numThreads); % effMatrix might be inv
+    % remove singleton dimensions from the data
+    data = squeeze(allData(:, (numPointsShift + 1):numPoints, ...
+        (leadingCutProj + 1):(numProj - endingCutProj)));
 
-        % SOMEWHERE BELOW HERE, GRIDDATA IS OVERWRITTEN TO AN EMPTY 3x3x3 MATRIX. UP TO HERE IT IS A
-        % 4D MATRIX, AS IT SHOULD BE
+    
+    %% grid3 routine
 
-        %% rolloff kernel
+    % import grid3_MAT from grid3 package
+    import reconstruction.grid3.grid3_MAT;
 
-        % should fix the variable assignments here... not good to have them in this file
-        delta = [1.0, 0.0];
-        k_not = [0.0, 0.0, 0.0];
-        DCF_not = 1.0;
-        
-        rolloffKern = grid3_MAT(delta', k_not', DCF_not, effMatrix, numThreads);
+    % effMatrix defined with gridding oversampling to allow later cropping of the image
+    effMatrix = (realNumPoints - ramPoints) * 2 * alpha;
+    
+    % transfer data to Cartesian grid
+    gridData = grid3_MAT(data, coords, DCFData, effMatrix, numThreads);
 
-        clear delta k_not DCF_not;
-        
-        
-        %% FFT into image space
 
-        % change to complex, FFT, then shift
-        
-        % DATA
-        gridData = squeeze(gridData(1, :, :, :) + 1j * gridData(2, :, :, :));
-        gridData = fftn(gridData);
-        gridData = fftshift(gridData, 1);
-        gridData = fftshift(gridData, 2);
-        gridData = fftshift(gridData, 3);
-        
-        % ROLLOFF
-        rolloffKern = squeeze(rolloffKern(1, :, :, :) + 1j * rolloffKern(2, :, :, :));
-        rolloffKern = fftn(rolloffKern);
-        rolloffKern = fftshift(rolloffKern, 1);
-        rolloffKern = fftshift(rolloffKern, 2);
-        rolloffKern = fftshift(rolloffKern, 3);
-        rolloffKern = abs(rolloffKern);
-        % BELOW HERE, CHECK WHY GRIDDATA IS SET TO A 0x0x0 MATRIX
-        
-        %% apply rolloff kernel and crop
+    %% rolloff kernel
 
-        gridData(rolloffKern > 0) = gridData(rolloffKern > 0) ./ rolloffKern(rolloffKern > 0);
-        xs = floor(effMatrix / 2 - effMatrix / 2 / alpha) + 1;
-        xe = floor(effMatrix / 2 + effMatrix / 2 / alpha);
+    % should fix the variable assignments here... not good to have them in this file
+    delta = [1.0, 0.0];
+    k_not = [0.0, 0.0, 0.0];
+    DCF_not = 1.0;
 
-        disp(xs)
-        disp(xe)
-        gridData = gridData(xs:xe, xs:xe, xs:xe); % here next
-        gridData = single(abs(gridData)); % magnitude, float32
+    rolloffKern = grid3_MAT(delta', k_not', DCF_not, effMatrix, numThreads);
 
-        
-        %% write output to file
+    clear delta k_not DCF_not;
 
-        dataOut = rot90(gridData, 2);
 
-        fileID = fopen(fullfile(outPath, strcat('reconstructed_img_', respMode, '.raw')), 'w');
-        fwrite(fileID, dataOut, 'float32');
-        fclose(fileID);
-    %end
+    %% FFT into image space
+
+    % change to complex, FFT, then shift
+
+    % DATA
+    gridData = squeeze(gridData(1, :, :, :) + 1j * gridData(2, :, :, :));
+    gridData = fftn(gridData);
+    gridData = fftshift(gridData, 1);
+    gridData = fftshift(gridData, 2);
+    gridData = fftshift(gridData, 3);
+
+    % ROLLOFF
+    rolloffKern = squeeze(rolloffKern(1, :, :, :) + 1j * rolloffKern(2, :, :, :));
+    rolloffKern = fftn(rolloffKern);
+    rolloffKern = fftshift(rolloffKern, 1);
+    rolloffKern = fftshift(rolloffKern, 2);
+    rolloffKern = fftshift(rolloffKern, 3);
+    rolloffKern = abs(rolloffKern);
+    
+
+    %% apply rolloff kernel and crop
+
+    gridData(rolloffKern > 0) = gridData(rolloffKern > 0) ./ rolloffKern(rolloffKern > 0);
+    xs = floor(effMatrix / 2 - effMatrix / 2 / alpha) + 1;
+    xe = floor(effMatrix / 2 + effMatrix / 2 / alpha);
+
+    gridData = gridData(xs:xe, xs:xe, xs:xe);
+    gridData = single(abs(gridData)); % magnitude, float32
+
+
+    %% write output to file
+
+    dataOut = rot90(gridData, 2);
+
+    fileID = fopen(fullfile(outPath, strcat('reconstructed_img_', respMode, '.raw')), 'w');
+    fwrite(fileID, dataOut, 'float32');
+    fclose(fileID);
+    
+    disp('>> IMAGE RECONSTRUCTION COMPLETE')
 end
 

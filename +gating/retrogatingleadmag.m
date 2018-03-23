@@ -42,9 +42,9 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         % decide whether to proceed
         switch CONFIRM
             case 'Yes'
-                disp('GATING :: CONFIGURATION SUCCESSFUL; PROCEEDING');
+                disp('>> GATING :: CONFIGURATION SUCCESSFUL; PROCEEDING');
             case 'No'
-                disp('GATING :: CONFIGURATION HALTED; ABORTING');
+                disp('>> GATING :: CONFIGURATION HALTED; ABORTING');
                 return % exit script
         end
     end
@@ -67,7 +67,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
 
     %% retrospective gating subroutine
 
-    disp('STARTING RETROSPECTIVE GATING ROUTINE');
+    disp('>> STARTING RETROSPECTIVE GATING ROUTINE');
 
     for echoIndex = 1:3
 
@@ -179,6 +179,6 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
     % set figure position
     set(gcf, 'Position', [50 80 1420 680]);
 
-    disp('RETROSPECTIVE GATING ROUTINE COMPLETE');
+    disp('>> RETROSPECTIVE GATING ROUTINE COMPLETE');
 end
 

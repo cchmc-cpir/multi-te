@@ -1,9 +1,9 @@
 %% MULTI-TE IMAGE PROCESSING: ENTRY POINT
 
-%   Author(s): Alex Cochran
-%   Email: Alexander.Cochran@cchmc.org, acochran50@gmail.com
-%   Group: CCHMC CPIR
-%   Date: 2018
+% Author(s): Alex Cochran
+% Email: Alexander.Cochran@cchmc.org, acochran50@gmail.com
+% Group: CCHMC CPIR
+% Date: 2018
 
 % This is the entry point for multi-TE image processing. From here, retrospective gating, image
 % reconstruction, and parameter mapping can be done. All configuration options should be entered in
@@ -56,7 +56,7 @@
 
 addpath('./tools/yaml-matlab');
 addpath('./tools/uigetmult');
-addpath('./control'); % checkselection.m
+addpath('./control'); % displaybanner.m, invalidselection.m
 
 
 %% startup
@@ -123,19 +123,20 @@ end
 
 %% select datafiles
 
-% scan data file path structure preallocation
-dataStruct = struct( ...
-    'ACQP_PATH', cell(1), ...
-    'TRAJ_PATH', cell(1), ...
-    'METH_PATH', cell(1), ...
-    'FID_PATH', cell(1) ...
-);
-
 while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
     INPUT_MODE = questdlg('Select ACQP, METHOD, FID, and TRAJ files automatically or manually?', ...
         'Selection mode', 'Manually', 'Automatically', 'Quit', 'Quit');
     switch INPUT_MODE
         case 'Automatically'
+            % scan data file path structure preallocation
+            dataStruct = struct( ...
+                'ACQP_PATH', cell(1), ...
+                'TRAJ_PATH', cell(1), ...
+                'METH_PATH', cell(1), ...
+                'FID_PATH', cell(1) ...
+            );
+
+            % define the filenames of ACQP, traj, method, and FID files by assuming their names
             for n = 1:length(DATASET_PATHS)
                 dataStruct(n).ACQP_PATH = fullfile(DATASET_PATHS(n), 'acqp');
                 dataStruct(n).TRAJ_PATH = fullfile(DATASET_PATHS(n), 'traj');
@@ -143,6 +144,15 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
                 dataStruct(n).FID_PATH = fullfile(DATASET_PATHS(n), 'fid');
             end
         case 'Manually'
+            % scan data file path structure preallocation
+            dataStruct = struct( ...
+                'ACQP_PATH', cell(1), ...
+                'TRAJ_PATH', cell(1), ...
+                'METH_PATH', cell(1), ...
+                'FID_PATH', cell(1) ...
+            );
+
+            % define the filenames of ACQP, traj, method, and FID files manually (via UI)
             for n = 1:length(DATASET_PATHS)
                 dataStruct(n).ACQP_PATH = uigetfile({'*.*', 'All Files (*.*)'}, ...
                     'Choose ACQP', DATASET_PATHS(n));

@@ -71,14 +71,11 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
         + coords(3, realNumPoints, :) .^2);
     coords = coords ./ max(r(:)) / 2;
     
-    disp('Generating DCF');
+    disp('>> GENERATING DCF');
      
     
     %% SDC calculations
     
-    disp(outPath)
-    
-    %addpath('multi-te/+reconstruction/sdc3/');
     import reconstruction.sdc3.sdc3_MAT;
     
     % define effMatrix
@@ -108,7 +105,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     
     import reconstruction.multitegrid;
     
-    disp('Reconstructing...');
+    disp('>> RECONSTRUCTING...');
     multitegrid( ...
         numPoints, ...
         numProj, ...
