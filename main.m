@@ -318,7 +318,7 @@ end
 %           reconstruction(dataset1_expiration_TE3)
 %           reconstruction(dataset2_expiration_TE1)
 %           reconstruction(dataset2_expiration_TE2)
-%           reconstruction(dataset2_expiration_TE3)   
+%           reconstruction(dataset2_expiration_TE3)
 
 if configStruct.mode.reconstruct
     % record reconstruction start time

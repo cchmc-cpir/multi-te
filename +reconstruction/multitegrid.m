@@ -2,7 +2,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     numPointsShift, respMode, outPath, alpha, numTE, fidPath, trajPath, numThreads)
     %MULTITERECON Leverages 3D gridding functionality provided by the 'grid3' package by Nick Zwart.
     %   Designed to run from 'multitesdc'. Transforms k-space data to Cartesian space to complete
-    %   image reconstruction. Designed for data acquired with multiple echo times.
+    %   image reconstruction. Created for compatibility with the Multi-TE pipeline.
     %
     %   Written by Jinbang Guo, Alex Cochran 2018.
     
@@ -29,8 +29,6 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         + coords(3, realNumPoints, :) .^2);
     coords = coords ./ max(r(:)) / 2;
     
-    %clear trajData r;
-    
     
     %% read pre-weights
     
@@ -38,9 +36,7 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     fileID = fopen(DCFPath);
     DCFData = squeeze(fread(fileID, inf, 'float32'));
     fclose(fileID);
-    % disp(length(DCFData))
-    % disp(realNumPoints)
-    % disp(realNumProj)
+
     DCFData = reshape(DCFData, [realNumPoints, realNumProj]);
     
     
@@ -49,17 +45,9 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     fileID = fopen(fidPath);
     kData = squeeze(fread(fileID, inf, 'int32')); % step-like scaling depending on 'SW_h'
     fclose(fileID);
-    whos
-    disp(fidPath)
-    disp(numTE)
-    disp(numProj)
-    disp(fidPoints)
-    disp(size(kData))
+
     allData = reshape(kData, 2, fidPoints, numProj); % REMOVED numTE
-    
-    %clear kData;
-    
-    
+
     %for n = 1:numTE
     disp(size(allData))
         % remove singleton dimensions from the data
@@ -72,9 +60,10 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         import reconstruction.grid3.grid3_MAT;
         
         effMatrix = (realNumPoints - ramPoints) * 2 * alpha;
+        disp('* * * * * effMatrix * * * * *');
+        disp(effMatrix)
         gridData = grid3_MAT(data, coords, DCFData, effMatrix, numThreads); % effMatrix might be inv
-        whos
-        %clear data;
+
         % SOMEWHERE BELOW HERE, GRIDDATA IS OVERWRITTEN TO AN EMPTY 3x3x3 MATRIX. UP TO HERE IT IS A
         % 4D MATRIX, AS IT SHOULD BE
 
@@ -108,21 +97,17 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         rolloffKern = fftshift(rolloffKern, 2);
         rolloffKern = fftshift(rolloffKern, 3);
         rolloffKern = abs(rolloffKern);
-
-        disp('after rolloff')
-        whos
         % BELOW HERE, CHECK WHY GRIDDATA IS SET TO A 0x0x0 MATRIX
         
         %% apply rolloff kernel and crop
 
         gridData(rolloffKern > 0) = gridData(rolloffKern > 0) ./ rolloffKern(rolloffKern > 0);
         xs = floor(effMatrix / 2 - effMatrix / 2 / alpha) + 1;
-        xe = floor(effMatrix / 2 - effMatrix / 2 / alpha);
-        disp('after applying rolloff')
-        whos
+        xe = floor(effMatrix / 2 + effMatrix / 2 / alpha);
+
         disp(xs)
         disp(xe)
-        %gridData = gridData(xs:xe, xs:xe, xs:xe); % here next
+        gridData = gridData(xs:xe, xs:xe, xs:xe); % here next
         gridData = single(abs(gridData)); % magnitude, float32
 
         
@@ -133,9 +118,6 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
         fileID = fopen(fullfile(outPath, strcat('reconstructed_img_', respMode, '.raw')), 'w');
         fwrite(fileID, dataOut, 'float32');
         fclose(fileID);
-    
-        disp('final')
-        whos
     %end
 end
 

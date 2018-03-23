@@ -59,13 +59,10 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
 
     trajData = squeeze(fread(fileID, inf, 'double'));
     fclose(fileID);
-%     fileInfo = dir(trajPath);
-%     numProj = ceil(fileInfo.bytes / 1024)
-%     disp(trajPath)
-%     whos
+
     % reshape trajectory data                             ||
     trajData = reshape(trajData, 3, numPoints, []); % CHANGED B/C OF SHAPE MISMATCH [changed back]    NEW
-    numProj = size(trajData, 3)                                                                     %   NEW
+    numProj = size(trajData, 3);                                                                     %   NEW
                                                         % ||
     % cut ending poins along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
