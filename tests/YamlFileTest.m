@@ -1,5 +1,5 @@
-classdef SetupTest < matlab.unittest.TestCase
-    %SETUPTEST Tests setup conditions for Multi-TE processing code.
+classdef YamlFileTest < matlab.unittest.TestCase
+    %YAMLFILETEST Tests setup conditions for Multi-TE processing code.
     %   Checks that the information contained in the input.yml (YAML) file is complete and correctly
     %   typed/formatted.
     %
