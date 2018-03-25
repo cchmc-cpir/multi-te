@@ -10,7 +10,7 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
     %   trajMode:       trajectory mode
     %       'goldmean' = golden mean trajectory
     %       'keyhold' = keyhole trajectory
-    %   phi:            fir 2D golden mean trajectory
+    %   phi:            for 2D golden mean trajectory
     %
     %   Written by Jinbang Guo, Alex Cochran 2018.
     

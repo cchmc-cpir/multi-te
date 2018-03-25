@@ -1,5 +1,5 @@
 function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, endingCutProj, ...
-    numPointsShift, respMode, outPath, alpha, numTE, fidPath, trajPath, numThreads)
+    numPointsShift, respMode, outPath, alpha, fidPath, trajPath, numThreads)
     %MULTITERECON Leverages 3D gridding functionality provided by the 'grid3' package by Nick Zwart.
     %   Designed to run from 'multitesdc'. Transforms k-space data to Cartesian space to complete
     %   image reconstruction. Created for compatibility with the Multi-TE pipeline.

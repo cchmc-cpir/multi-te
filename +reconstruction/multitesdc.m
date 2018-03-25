@@ -1,5 +1,5 @@
-function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPoints, numThreads, ...
-    numPointsShift, leadingCutProj, endingCutProj, numIter, oSF, verbose, ramPointsMod, alpha, beta)
+function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, numThreads, ...
+    numPointsShift, leadingCutProj, endingCutProj, numIter, verbose, ramPointsMod, alpha, beta)
     %MULTITESDC Multi-TE sampling density compensation.
     %   Appropriately weights non-uniformly sampled k-space data to ensure accurate image
     %   reconstruction after interpolation onto a Cartesian grid. For use with data from interleaved
@@ -20,19 +20,12 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     %   leadingCutProj:     number of projections cut from leading edge
     %   endingCutProj:      number of projections cut from ending edge
     %   numIter:            number of iterations (SDC)
-    %   oSF:                _____ (SDC)
-    %   verbose:            _____ (SDC)
+    %   verbose:            whether the MEX functions echo output (SDC)
     %   ramPointsMod:       _____
     %   alpha:              gridding oversampling ratio (for grid3 routine)
     %   beta:               expansion factor ratio: alpha_x/alpha_z, where alpha_x = alpha_y (grid3)
     %
     %   Written by Jinbang Guo, Alex Cochran 2018.
-
-    
-    %% add sdc3 and grid3 paths
-    
-    %addpath('.+reconstruction/sdc3');
-    %addpath('.+reconstruction/grid3');
 
     
     %% respiration mode
@@ -60,10 +53,10 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     trajData = squeeze(fread(fileID, inf, 'double'));
     fclose(fileID);
 
-    % reshape trajectory data                             ||
-    trajData = reshape(trajData, 3, numPoints, []); % CHANGED B/C OF SHAPE MISMATCH [changed back]    NEW
-    numProj = size(trajData, 3);                                                                     %   NEW
-                                                        % ||
+    % reshape trajectory data
+    trajData = reshape(trajData, 3, numPoints, []);
+    numProj = size(trajData, 3);
+
     % cut ending poins along one spoke
     coords = trajData(:, 1:realNumPoints, (leadingCutProj + 1):numProj - endingCutProj);
     
@@ -71,7 +64,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
         + coords(3, realNumPoints, :) .^2);
     coords = coords ./ max(r(:)) / 2;
     
-    disp('>> GENERATING DCF');
+    disp('----- GENERATING DCF');
      
     
     %% SDC calculations
@@ -83,7 +76,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     effMatrix = (realNumPoints - ramPoints) * 2 * beta;
     
     % run SDC routine
-    DCF = sdc3_MAT(coords, numIter, effMatrix, verbose, oSF);
+    DCF = sdc3_MAT(coords, numIter, effMatrix, verbose, alpha);
     DCF = single(DCF); % float32
 
     
@@ -105,7 +98,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
     
     import reconstruction.multitegrid;
     
-    disp('>> RECONSTRUCTING...');
+    disp('----- RECONSTRUCTING...');
     multitegrid( ...
         numPoints, ...
         numProj, ...
@@ -117,7 +110,6 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numProj, numPoints, fidPo
         respMode, ...
         outPath, ...
         alpha, ...
-        numTE, ...
         fidPath, ...
         trajPath, ...
         numThreads ...
