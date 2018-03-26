@@ -1,0 +1,8 @@
+MULTI-TE: MAPPING
+
+Here is the help text for the GATING portion of Multi-TE.
+
+More text.
+
+    Formatted text.
+    More formatted text.
