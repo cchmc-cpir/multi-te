@@ -356,7 +356,7 @@ else
 end
 
 
-%% 14. = = = = = image reconstruction = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+%% 14. = = = = = image reconstruction
 
 % Input files for reconstruction functionality are the gated trajectory/FID files produced during
 % the gating routine: one pair of inspiration and expiration gated files for each TE. The
@@ -455,7 +455,7 @@ if configStruct.mode.reconstruct
 end
 
 
-%% 15. = = = = = MR parameter mapping = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+%% 15. = = = = = MR parameter mapping
 
 % Input files for mapping functionality are the *.raw images written during image reconstruction, 
 % one for each TE. This routine should therefore be run N times for each dataset, where N = # of TE.

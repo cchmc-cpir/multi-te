@@ -36,9 +36,22 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, num
     elseif strfind(trajPath, 'expiration')
         respMode = 'expiration';
     else
-        respMode = 'notspec';
+        respMode = 'notspec'; % WEAK POINT: need to do better handling of non-spec. resp. modes
     end
 
+    
+    %% create *.raw filename from current information
+    
+    % Extract echo time from an input file
+    filePath = fidPath;
+    filePath(strfind(filePath, '_')) = [];
+    key = respmode;
+    index = strfind(filePath, key);
+    echoTime = char(sscanf(filePath(index(1) + length(key):end), '%g', 1));
+    
+    % Define *.raw filename
+    outputFilename = strcat('reconstructed_img_', respMode, '_', echoTime, '.raw');
+    
     
     %% setup calculated parameter(s)/other local variables
     
@@ -112,7 +125,8 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, num
         alpha, ...
         fidPath, ...
         trajPath, ...
-        numThreads ...
+        numThreads, ...
+        outputFilename ...
     );
 end
 
