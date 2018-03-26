@@ -1,4 +1,4 @@
-function mask = ManSegment(img);
+function mask = mansegment(img)
 % function to segment ROIs from an image
 %
 szimg = size(img);

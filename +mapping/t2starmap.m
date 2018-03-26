@@ -30,16 +30,17 @@ function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThre
     disp(TE2)
     
     % Preallocate memory for the image
-    imageMatrix = zeros(imageSize);
+    imageMatrix = zeros(imageSize(1), imageSize(2), imageSize(3), 2);
     
-    % Load the *.raw image file
-    fileID = fopen(imagePaths, 'r');
-    loadedImage = fread(fileID, 'real*4');
-    fclose(fileID);
-    
-    % Rotate the image 90 degrees
-    rotatedImage = rot90(loadingImage, 3);
-    
+    % Load the *.raw image files and collate
+    for idx = 1:length(fileNames)
+        fileID = fopen(imagePaths{idx});
+        loadingImage = fread(fileID, 'real*4');
+        fclose(fileID);
+        loadingImage = reshape(loadingImage, imageSize);
+        rotatedImage = rot90(loadingImage, 3);
+        imageMatrix(:, :, :, idx) = rotatedImage;
+    end
 
     MR1 = imageMatrix(:, :, sliceRange, 1);
     MR2 = imageMatrix(:, :, sliceRange, 2);
@@ -49,7 +50,7 @@ function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThre
         case 'load'
             error('Binary mask loading is not implemented yet.');
         case 'now'
-            binMask = ManSegment(MR2);
+            binMask = mansegment(MR2);
     end
     
     

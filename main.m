@@ -274,7 +274,7 @@ for n = 1:length(datasetPaths)
 end
 
 
-%% 12. = = = = = Retrospective gating
+%% 12. = = = = = Automated retrospective gating
 
 if configStruct.mode.gate
     % Record gating start time
@@ -356,7 +356,7 @@ else
 end
 
 
-%% 14. = = = = = image reconstruction
+%% 14. = = = = = Automated image reconstruction
 
 % Input files for reconstruction functionality are the gated trajectory/FID files produced during
 % the gating routine: one pair of inspiration and expiration gated files for each TE. The
@@ -455,19 +455,22 @@ if configStruct.mode.reconstruct
 end
 
 
-%% 15. = = = = = MR parameter mapping
+%% 15. = = = = = Automated MR parameter mapping
 
 % Input files for mapping functionality are the *.raw images written during image reconstruction, 
 % one for each TE. This routine should therefore be run N times for each dataset, where N = # of TE.
+%
+% Note: this functionality currently only supports an algorithm that compares the longest two
 
 if configStruct.mode.map
     % Record mapping start time
     mapStartTime = tic;
     
     % Import from mapping package
-    import mapping.T2StarMap_working
+    import mapping.t2starmap
     
-    % mapping(PARAM1, PARAM2, PARAM3, ...);
+    % Run mapping routine for each image
+    % AUTOMATED MAPPING ROUTINE GOES HERE
     
     % Record mapping time elapsed
     mapTimeElapsed = toc(mapStartTime);
