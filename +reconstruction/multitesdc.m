@@ -45,9 +45,9 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, num
     % Extract echo time from an input file
     filePath = fidPath;
     filePath(strfind(filePath, '_')) = [];
-    key = respmode;
+    key = respMode;
     index = strfind(filePath, key);
-    echoTime = char(sscanf(filePath(index(1) + length(key):end), '%g', 1));
+    echoTime = num2str(sscanf(filePath(index(1) + length(key):end), '%g', 1));
     
     % Define *.raw filename
     outputFilename = strcat('reconstructed_img_', respMode, '_', echoTime, '.raw');
@@ -77,7 +77,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, num
         + coords(3, realNumPoints, :) .^2);
     coords = coords ./ max(r(:)) / 2;
     
-    disp('----- GENERATING DCF');
+    disp('RECONSTRUCTION :: GENERATING DCF');
      
     
     %% SDC calculations
@@ -111,7 +111,7 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, num
     
     import reconstruction.multitegrid;
     
-    disp('----- RECONSTRUCTING...');
+    disp('RECONSTRUCTION :: RECONSTRUCTING...');
     multitegrid( ...
         numPoints, ...
         numProj, ...

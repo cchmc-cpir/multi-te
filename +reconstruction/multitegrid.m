@@ -115,6 +115,6 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     fwrite(fileID, dataOut, 'float32');
     fclose(fileID);
     
-    disp('>> IMAGE RECONSTRUCTION COMPLETE')
+    disp('IMAGE RECONSTRUCTION COMPLETE')
 end
 
