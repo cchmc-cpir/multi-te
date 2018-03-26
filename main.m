@@ -52,25 +52,26 @@
 % |--- readme.txt (or any other additional files relating to the dataset)
 
 
-%% add paths to 3rd party/self-written utility classes/functions
+%% 1. Add paths to 3rd party/self-written utility classes/functions
 
 addpath('./tools/yaml-matlab');
 addpath('./tools/uigetmult');
 addpath('./control'); % displaybanner.m, invalidselection.m
 
 
-%% CLI startup output
+%% 2. CLI startup output
 
-% display fun program banner
+% Display fun program banner
 displaybanner;
 
-% notify user that having all data files in the same directories is a good idea
+% Notify user that having all data files in the same directories is a good idea
 fprintf('\nThis program is designed to perform image processing on multi-TE UTE MRI data.');
 fprintf('\nSettings can be changed from the input.yml file in the top-level directory.\n');
-fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n')
+fprintf('\nBEST RESULTS: have FID, ACQP, trajectory, and method files in the same folders.\n');
+fprintf('\nFor help using this package, display help text by using "multitehelp."');
 
 
-%% ask to clear workspace if already populated
+%% 3. Ask to clear workspace if already populated
 
 if ~isempty(who)
     clearPrompt = questdlg('Clear workspace?', 'Clear?', 'Yes', 'No', 'No');
@@ -80,14 +81,14 @@ if ~isempty(who)
 end
 
 
-%% capture program start time
+%% 4. Capture program start time
 
 timeStart = datetime('now');
 
 
-%% read YAML input file (input.yml)
+%% 5. Read YAML input file (input.yml)
 
-% add paths to use and test YAML input
+% Add paths to use and test YAML input
 addpath('./tools/yaml-matlab');
 
 while ~exist('configStruct', 'var')
@@ -96,14 +97,14 @@ while ~exist('configStruct', 'var')
 end
 
 
-%% define any constants/prefixes/suffixes
+%% 6. Define any constants/prefixes/suffixes
 
 GATE_SUFFIX = 'gated';
 RECON_SUFFIX = 'reconstructed';
 MAP_SUFFIX = 'mapped';
 
 
-%% Select scan data directory
+%% 7. Select scan data directory
 
 while ~exist('DATA_PATH', 'var') || ~isa(DATA_PATH, 'char')
     DATA_PATH = uigetdir('', 'Choose data directory');
@@ -113,9 +114,9 @@ while ~exist('DATA_PATH', 'var') || ~isa(DATA_PATH, 'char')
 end
 
 
-%% select datasets
+%% 8. Select datasets
 
-% select the datasets in DATA_PATH to process
+% Select the datasets in DATA_PATH to process
 while ~exist('datasetPaths', 'var') || isempty(datasetPaths)
     datasetPaths = uigetmult(DATA_PATH, 'Select dataset folders');
     if invalidselection(datasetPaths, 'cell')
@@ -125,9 +126,9 @@ while ~exist('datasetPaths', 'var') || isempty(datasetPaths)
 end
 
 
-%% select datafiles
+%% 9. Select datafiles
 
-% scan data file path structure preallocation
+% Scan data file path structure preallocation
 if ~exist('rawDatafilePaths', 'var')
     rawDatafilePaths = struct( ...
         'ACQP_PATH', cell(1), ...
@@ -142,7 +143,7 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
         'Selection mode', 'Manually', 'Automatically', 'Quit', 'Quit');
     switch INPUT_MODE
         case 'Automatically'
-            % define the filenames of ACQP, traj, method, and FID files by assuming their names
+            % Define the filenames of ACQP, traj, method, and FID files by assuming their names
             for n = 1:length(datasetPaths)
                 rawDatafilePaths(n).ACQP_PATH = fullfile(datasetPaths(n), 'acqp');
                 rawDatafilePaths(n).TRAJ_PATH = fullfile(datasetPaths(n), 'traj');
@@ -150,7 +151,7 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
                 rawDatafilePaths(n).FID_PATH = fullfile(datasetPaths(n), 'fid');
             end
         case 'Manually'
-            % define the filenames of ACQP, traj, method, and FID files manually (via UI)
+            % Define the filenames of ACQP, traj, method, and FID files manually (via the UI)
             for n = 1:length(datasetPaths)
                 rawDatafilePaths(n).ACQP_PATH = uigetfile({'*.*', 'All Files (*.*)'}, ...
                     'Choose ACQP', datasetPaths(n));
@@ -179,15 +180,15 @@ while ~exist('INPUT_MODE', 'var') || isempty(INPUT_MODE)
         case 'Quit'
             clear INPUT_MODE;
             return
-        otherwise % if the user closes the window
-            if invalidselection(DATA_PATH, 'char') % might not be the correct path variable...
+        otherwise % If the user closes the window
+            if invalidselection(DATA_PATH, 'char') % Might not be the correct path variable...
                 return;
             end
     end
 end
 
 
-%% check for ACQP, traj, method, and FID file existence
+%% 10. Check for ACQP, traj, method, and FID file existence
 
 for n = 1:length(datasetPaths)
     checkACQP = exist(char(rawDatafilePaths(n).ACQP_PATH), 'file');
@@ -201,37 +202,37 @@ for n = 1:length(datasetPaths)
 end
 
 
-%% define output location(s)
+%% 11. Define output location(s)
 
-% allow the user to define output paths automatically or manually
+% Allow the user to define output paths automatically or manually
 while ~exist('OUTPUT_MODE', 'var') || isempty(OUTPUT_MODE)
     OUTPUT_MODE = questdlg('Define output location and prefix automatically or manually?', ...
         'Selection mode', 'Manually', 'Automatically', 'Quit', 'Quit');
     switch OUTPUT_MODE
         case 'Automatically'
-            TOP_PATH = fileparts(DATA_PATH); % represents one directory above the data path
-            outputPrefix = datestr(timeStart, 'yyyy-mm-dd_HH-MM-SS'); % date prefix
+            TOP_PATH = fileparts(DATA_PATH); % Represents one directory above the data path
+            outputPrefix = datestr(timeStart, 'yyyy-mm-dd_HH-MM-SS'); % Date prefix
         case 'Manually'
-            TOP_PATH = uigetdir('', 'Choose output directory'); % top lebel
+            TOP_PATH = uigetdir('', 'Choose output directory'); % Top lebel
             outputPrefix = inputdlg('Enter a prefix for output files:');
         case 'Quit'
             return
-        otherwise % if the user closes the window
+        otherwise % If the user closes the window
             if invalidselection(DATA_PATH, 'char')
                 return;
             end
     end
 end
 
-% define top-level output path in the specified location
+% Define top-level output path in the specified location
 OUT_PATH = fullfile(TOP_PATH, 'processed_data');
 
-% safely create top-level output directory for this execution
+% Safely create top-level output directory for this execution
 if ~exist(OUT_PATH, 'dir')
     mkdir(OUT_PATH);
 end
 
-% preallocate processed data paths
+% Preallocate processed data paths
 if ~exist('processedFilePaths', 'var')
     processedFilePaths = struct( ...
         'SET_OUT_PATH', cell(1), ...
@@ -241,24 +242,24 @@ if ~exist('processedFilePaths', 'var')
     );
 end
 
-% define output paths for each scan dataset
+% Define output paths for each scan dataset
 for n = 1:length(datasetPaths)
-    % define the output path specific to scan 'n'
+    % Define the output path specific to scan 'n'
     fullScanPath = strsplit(char(datasetPaths(n)), filesep);
     scanPath = fullScanPath(end);
     processedFilePaths(n).SET_OUT_PATH = fullfile(OUT_PATH, strcat(scanPath, '_processed'));
     
-    % create the output path for this scan if it doesn't exist
+    % Create the output path for this scan if it doesn't exist
     if ~exist(char(processedFilePaths(n).SET_OUT_PATH), 'dir')
         mkdir(char(processedFilePaths(n).SET_OUT_PATH))
     end
     
-    % define output path names for each type of data
+    % Define output path names for each type of data
     processedFilePaths(n).GATE_PATH = fullfile(processedFilePaths(n).SET_OUT_PATH, GATE_SUFFIX);
     processedFilePaths(n).RECON_PATH = fullfile(processedFilePaths(n).SET_OUT_PATH, RECON_SUFFIX);
     processedFilePaths(n).MAP_PATH = fullfile(processedFilePaths(n).SET_OUT_PATH, MAP_SUFFIX);
     
-    % safely create output directories for each type of data in scan 'n'
+    % Safely create output directories for each type of data in scan 'n'
     if ~exist(char(processedFilePaths(n).GATE_PATH), 'dir')
         mkdir(char(processedFilePaths(n).GATE_PATH));
     end
@@ -273,17 +274,17 @@ for n = 1:length(datasetPaths)
 end
 
 
-%% = = = = = retrospective gating = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+%% 12. = = = = = Retrospective gating
 
 if configStruct.mode.gate
-    % record gating start time
+    % Record gating start time
     gateStartTime = tic;
 
-    % import from gating package
+    % Import from gating package
     import gating.retrogatingleadmag
     
     for n = 1:length(rawDatafilePaths)
-        % gating operation
+        % Gating operation
         retrogatingleadmag( ...
             configStruct.settings.num_projections, ...
             configStruct.settings.num_cut_projections, ...
@@ -299,19 +300,19 @@ if configStruct.mode.gate
         );
     end
     
-    % record gating time elapsed
+    % Record gating time elapsed
     gateTimeElapsed = toc(gateStartTime);
 end
 
 
-%% isolate and specify gated file paths
+%% 13. Isolate and specify gated file paths
 
 % Get the full paths for each gated data file and organize them into sets (MATLAB structs) to enable
 % reconstruction of gated data. This step should not execute if the user does not specify gated
 % reconstruction in the input file.
 
 if configStruct.mode.gated_reconstruction
-    % gated data file path structure preallocation
+    % Gated data file path structure preallocation
     if ~exist('dataForRecon', 'var')
         dataForRecon = struct( ...
             'inspiration', struct( ...
@@ -340,22 +341,22 @@ if configStruct.mode.gated_reconstruction
         end
     end
 else
+    % Non-gated reconstruction will use the raw FID and TRAJ files in the data path.
     if ~exist('dataForRecon', 'var')
         dataForRecon = struct( ...
             'FID', cell(1), ...
             'TRAJ', cell(1) ...
         );
+    end
     
-%         for n = 1:length(rawDatafilePaths)
-%             for m = 1:length(configStruct.settings.echo_times)
-%                 dataForRecon(n).FID{m}
-%             end
-%         end
+    for n = 1:length(rawDatafilePaths)
+        dataForRecon(n).FID = char(rawDatafilePaths(n).FID_PATH);
+        dataForRecon(n).TRAJ = char(rawDatafilePaths(n).TRAJ_PATH);
     end
 end
 
 
-%% = = = = = image reconstruction = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+%% 14. = = = = = image reconstruction = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 % Input files for reconstruction functionality are the gated trajectory/FID files produced during
 % the gating routine: one pair of inspiration and expiration gated files for each TE. The
@@ -383,20 +384,29 @@ end
 % Reconstructed images are output as *.raw files.
 
 if configStruct.mode.reconstruct
-    % record reconstruction start time
+    % Record reconstruction start time
     reconStartTime = tic;
     
-    % specify the gated files that will be used based upon respiration mode
-    switch configStruct.settings.resp_mode
-        case 'expiration'
-            gatedData = dataForRecon.expiration;
-        case 'inspiration'
-            gatedData = dataForRecon.inspiration;
-        otherwise
-            warning('Respiration mode not specified or not recognized.');
+    % Specify the gated files that will be used based upon respiration mode
+    if configStruct.mode.gated_reconstruction
+        % If execution proceeds to here, dataForRecon will have two struct fields: inspiration and
+        % expiration. Each of these will contain FID and TRAJ file information.
+        switch configStruct.settings.resp_mode
+            case 'expiration'
+                gatedData = dataForRecon.expiration;
+            case 'inspiration'
+                gatedData = dataForRecon.inspiration;
+            otherwise
+                warning('Respiration mode not specified or not recognized.');
+        end
+    else
+        % If execution proceeds to here, dataForRecon will not be stratified into inspiration and
+        % expiration; i.e. dataForRecon will be a struct with two cell array fields, not a struct
+        % with two struct fields.
+        gatedData = dataForRecon;
     end
     
-    % import from reconstruction package
+    % Import from reconstruction package
     import reconstruction.readbrukerconfigs;
     import reconstruction.multitesdc;
     
@@ -413,21 +423,13 @@ if configStruct.mode.reconstruct
         configStruct.settings.phi, ...
         configStruct.settings.zero_filling ...
     );
-    
+
+    % Perform image reconstruction for each set of files
     for n = 1:length(datasetPaths)
         fprintf('\nCurrent dataset: %s', char(datasetPaths(n)));
         for m = 1:length(configStruct.settings.echo_times)
             fprintf('\nReconstructing %f microsecond data...', configStruct.settings.echo_times{m});
-        end
-    end
-    
 
-    % perform image reconstruction for each set of gated FID and trajectory files
-    for n = 1:length(rawDatafilePaths)
-        for m = 1:length(configStruct.settings.echo_times)
-            disp(gatedData(n).FID{m})
-            disp(gatedData(n).TRAJ{m})
-            
             multitesdc( ...
                 gatedData(n).FID{m}, ...
                 gatedData(n).TRAJ{m}, ...
@@ -437,54 +439,54 @@ if configStruct.mode.reconstruct
                 configStruct.settings.fid_points, ...
                 configStruct.settings.num_threads, ...
                 configStruct.settings.num_points_shift, ...
-                configStruct.settings.lead_cut_projections, ... % check this
-                configStruct.settings.end_cut_projections, ... % check this
-                configStruct.settings.num_iterations, ... % check this
-                configStruct.settings.verbose, ... % check this
-                configStruct.settings.ram_points_mod, ... % check this
+                configStruct.settings.lead_cut_projections, ...
+                configStruct.settings.end_cut_projections, ...
+                configStruct.settings.num_iterations, ...
+                configStruct.settings.verbose, ...
+                configStruct.settings.ram_points_mod, ...
                 configStruct.settings.alpha, ...
-                configStruct.settings.beta ... % check this
-            );
+                configStruct.settings.beta ...
+           );
         end
     end
 
-    % record reconstruction time elapsed
+    % Record reconstruction time elapsed
     reconTimeElapsed = toc(reconStartTime);
 end
 
 
-%% = = = = = MR parameter mapping = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+%% 15. = = = = = MR parameter mapping = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 % Input files for mapping functionality are the *.raw images written during image reconstruction, 
 % one for each TE. This routine should therefore be run N times for each dataset, where N = # of TE.
 
 if configStruct.mode.map
-    % record mapping start time
+    % Record mapping start time
     mapStartTime = tic;
     
-    % import from mapping package
+    % Import from mapping package
     import mapping.T2StarMap_working
     
     % mapping(PARAM1, PARAM2, PARAM3, ...);
     
-    % record mapping time elapsed
+    % Record mapping time elapsed
     mapTimeElapsed = toc(mapStartTime);
 end
 
 
-%% record all data filenames, etc. to an output file
+%% 16. Record all data filenames, etc. to an output file
 
 if configStruct.mode.log
-    % define log file path and open for writing
+    % Define log file path and open for writing
     logFilePath = fullfile(OUT_PATH, strcat(outputPrefix, '.log'));
     logFileID = fopen(logFilePath, 'w');
 
-    % add file header
+    % Add file header
     fprintf(logFileID, '- - - MULTI-TE - - -');
     fprintf(logFileID, '%s', datestr(timeStart, 'yyyy-mm-dd HH:MM:SS'));
     fprintf(logFileID, '\n\nINPUT PARAMS:\n\n');
 
-    % copy YAML input file to log and add new information
+    % Copy YAML input file to log and add new information
     inputFileID = fopen(configFile);
     configLine = fgets(inputFileID);
     while ischar(configLine)
@@ -492,7 +494,7 @@ if configStruct.mode.log
         configLine = fgets(inputFileID);
     end
 
-    % separate input & output information
+    % Separate input & output information
     fprintf(logFileID, '\n-----------------------------------------------------------------------');
     fprintf(logFileID, '\n\nOUTPUT:\n');
     fprintf(logFileID, '\nData path: %s', DATA_PATH); 
@@ -509,12 +511,13 @@ if configStruct.mode.log
         fprintf(logFileID, '\nT2* Mapping Execution time: %f sec', mapTimeElapsed);
     end
     
-    % close the output file
+    % Close the output file
     fclose(logFileID);
 end
 
 
-%% finish execution
+%% 17. Finish execution
 
 fprintf('\nExecution finished: << %f sec >>\n', timeElapsed);
 fprintf('Output available at %s\n', OUT_PATH);
+
