@@ -232,8 +232,8 @@ if ~exist(OUT_PATH, 'dir')
 end
 
 % preallocate processed data paths
-if ~exist('processedDatafilePaths', 'var')
-    processedDatafilePaths = struct( ...
+if ~exist('processedFilePaths', 'var')
+    processedFilePaths = struct( ...
         'SET_OUT_PATH', cell(1), ...
         'GATE_PATH', cell(1), ...
         'RECON_PATH', cell(1), ...
@@ -243,35 +243,32 @@ end
 
 % define output paths for each scan dataset
 for n = 1:length(datasetPaths)
-    % define the top-level output path specific to scan 'n'
+    % define the output path specific to scan 'n'
     fullScanPath = strsplit(char(datasetPaths(n)), filesep);
     scanPath = fullScanPath(end);
-    processedDatafilePaths(n).SET_OUT_PATH = fullfile(OUT_PATH, strcat(scanPath, '_processed'));
+    processedFilePaths(n).SET_OUT_PATH = fullfile(OUT_PATH, strcat(scanPath, '_processed'));
     
-    % create the top-level output path for this scan if it doesn't exist
-    if ~exist(char(processedDatafilePaths(n).SET_OUT_PATH), 'dir')
-        mkdir(char(processedDatafilePaths(n).SET_OUT_PATH))
+    % create the output path for this scan if it doesn't exist
+    if ~exist(char(processedFilePaths(n).SET_OUT_PATH), 'dir')
+        mkdir(char(processedFilePaths(n).SET_OUT_PATH))
     end
     
     % define output path names for each type of data
-    processedDatafilePaths(n).GATE_PATH = ...
-        fullfile(processedDatafilePaths(n).SET_OUT_PATH, GATE_SUFFIX);
-    processedDatafilePaths(n).RECON_PATH = ...
-        fullfile(processedDatafilePaths(n).SET_OUT_PATH, RECON_SUFFIX);
-    processedDatafilePaths(n).MAP_PATH = ...
-        fullfile(processedDatafilePaths(n).SET_OUT_PATH, MAP_SUFFIX);
+    processedFilePaths(n).GATE_PATH = fullfile(processedFilePaths(n).SET_OUT_PATH, GATE_SUFFIX);
+    processedFilePaths(n).RECON_PATH = fullfile(processedFilePaths(n).SET_OUT_PATH, RECON_SUFFIX);
+    processedFilePaths(n).MAP_PATH = fullfile(processedFilePaths(n).SET_OUT_PATH, MAP_SUFFIX);
     
     % safely create output directories for each type of data in scan 'n'
-    if ~exist(char(processedDatafilePaths(n).GATE_PATH), 'dir')
-        mkdir(char(processedDatafilePaths(n).GATE_PATH))
+    if ~exist(char(processedFilePaths(n).GATE_PATH), 'dir')
+        mkdir(char(processedFilePaths(n).GATE_PATH));
     end
     
-    if ~exist(char(processedDatafilePaths(n).RECON_PATH), 'dir')
-        mkdir(char(processedDatafilePaths(n).RECON_PATH))
+    if ~exist(char(processedFilePaths(n).RECON_PATH), 'dir')
+        mkdir(char(processedFilePaths(n).RECON_PATH));
     end
     
-    if ~exist(char(processedDatafilePaths(n).MAP_PATH), 'dir')
-        mkdir(char(processedDatafilePaths(n).MAP_PATH))
+    if ~exist(char(processedFilePaths(n).MAP_PATH), 'dir')
+        mkdir(char(processedFilePaths(n).MAP_PATH));
     end
 end
 
@@ -281,7 +278,7 @@ end
 if configStruct.mode.gate
     % record gating start time
     gateStartTime = tic;
-    
+
     % import from gating package
     import gating.retrogatingleadmag
     
@@ -297,7 +294,7 @@ if configStruct.mode.gate
             configStruct.settings.echo_times, ...
             char(datasetPaths(n)), ...
             char(rawDatafilePaths(n).FID_PATH), ...
-            char(processedDatafilePaths(n)), ...
+            char(processedFilePaths(n).GATE_PATH), ...
             outputPrefix ...
         );
     end
@@ -310,16 +307,17 @@ end
 %% isolate and specify gated file paths
 
 % Get the full paths for each gated data file and organize them into sets (MATLAB structs) to enable
-% reconstruction of the gated data.
+% reconstruction of gated data. This step should not execute if the user does not specify gated
+% reconstruction in the input file.
 
-if configStruct.mode.gate
+if configStruct.mode.gated_reconstruction
     % gated data file path structure preallocation
     if ~exist('dataForRecon', 'var')
         dataForRecon = struct( ...
             'inspiration', struct( ...
                 'FID', cell(1), ...
                 'TRAJ', cell(1)), ...
-            'expiration', struct( ...
+            'expiration', struct( ...   
                 'FID', cell(1), ...
                 'TRAJ', cell(1)) ...
         );
@@ -327,13 +325,17 @@ if configStruct.mode.gate
 
     for n = 1:length(rawDatafilePaths)
         for m = 1:length(configStruct.settings.echo_times)
-            dataForRecon(n).inspiration.FID{m} = fullfile(char(processedDatafilePaths(1)), ...
+            dataForRecon(n).inspiration.FID{m} = ...
+                fullfile(char(processedFilePaths(n).GATE_PATH), ...
                 strcat('fid_inspiration_', num2str(configStruct.settings.echo_times{m})));
-            dataForRecon(n).inspiration.TRAJ{m} = fullfile(char(processedDatafilePaths(1)), ...
+            dataForRecon(n).inspiration.TRAJ{m} = ...
+                fullfile(char(processedFilePaths(n).GATE_PATH), ...
                 strcat('traj_inspiration_', num2str(configStruct.settings.echo_times{m})));
-            dataForRecon(n).expiration.FID{m} = fullfile(char(processedDatafilePaths(1)), ...
+            dataForRecon(n).expiration.FID{m} = ...
+                fullfile(char(processedFilePaths(n).GATE_PATH), ...
                 strcat('fid_expiration_', num2str(configStruct.settings.echo_times{m})));
-            dataForRecon(n).expiration.TRAJ{m} = fullfile(char(processedDatafilePaths(1)), ...
+            dataForRecon(n).expiration.TRAJ{m} = ...
+                fullfile(char(processedFilePaths(n).GATE_PATH), ...
                 strcat('traj_expiration_', num2str(configStruct.settings.echo_times{m})));
         end
     end
@@ -377,6 +379,8 @@ end
 %           reconstruction(dataset2_expiration_TE1)
 %           reconstruction(dataset2_expiration_TE2)
 %           reconstruction(dataset2_expiration_TE3)
+%
+% Reconstructed images are output as *.raw files.
 
 if configStruct.mode.reconstruct
     % record reconstruction start time
@@ -393,8 +397,8 @@ if configStruct.mode.reconstruct
     end
     
     % import from reconstruction package
-    import reconstruction.readbrukerconfigs
-    import reconstruction.multitesdc
+    import reconstruction.readbrukerconfigs;
+    import reconstruction.multitesdc;
     
     % Read Bruker output files (ACQP, METHOD) to make trajectory corrections. Note: even if the
     % acquisition was multi-TE, there will only be one set of these.
@@ -409,6 +413,14 @@ if configStruct.mode.reconstruct
         configStruct.settings.phi, ...
         configStruct.settings.zero_filling ...
     );
+    
+    for n = 1:length(datasetPaths)
+        fprintf('\nCurrent dataset: %s', char(datasetPaths(n)));
+        for m = 1:length(configStruct.settings.echo_times)
+            fprintf('\nReconstructing %f microsecond data...', configStruct.settings.echo_times{m});
+        end
+    end
+    
 
     % perform image reconstruction for each set of gated FID and trajectory files
     for n = 1:length(rawDatafilePaths)
@@ -419,9 +431,8 @@ if configStruct.mode.reconstruct
             multitesdc( ...
                 gatedData(n).FID{m}, ...
                 gatedData(n).TRAJ{m}, ...
-                char(processedDatafilePaths(n)), ...
+                char(processedFilePaths(n).RECON_PATH), ...
                 length(configStruct.settings.echo_times), ...
-                configStruct.settings.num_projections, ...
                 configStruct.settings.num_points, ...
                 configStruct.settings.fid_points, ...
                 configStruct.settings.num_threads, ...
@@ -429,10 +440,9 @@ if configStruct.mode.reconstruct
                 configStruct.settings.lead_cut_projections, ... % check this
                 configStruct.settings.end_cut_projections, ... % check this
                 configStruct.settings.num_iterations, ... % check this
-                configStruct.settings.osf, ... % check this
                 configStruct.settings.verbose, ... % check this
                 configStruct.settings.ram_points_mod, ... % check this
-                configStruct.settings.alpha, ... % check this
+                configStruct.settings.alpha, ...
                 configStruct.settings.beta ... % check this
             );
         end

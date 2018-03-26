@@ -10,6 +10,7 @@ meta:
 # functionality switches
 mode:
     gate: true
+    gated_reconstruction: true
     reconstruct: true
     map: false
     log: true
@@ -33,7 +34,6 @@ settings:
     resp_mode:              expiration              # 'inspiration' or 'expiration'
     alpha:                  2                       # gridding oversampling ratio
     beta:                   1                       # expansion factor ratio
-    osf:                    2.1                     # ??? (sdc_multiTE.m)
     verbose:                true                    # ??? (sdc_multiTE.m)
     lead_cut_projections:   0                       # ??? (sdc_multiTE.m)
     end_cut_projections:    0                       # ??? (sdc_multiTE.m)
