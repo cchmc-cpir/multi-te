@@ -32,8 +32,9 @@ function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThre
     % Preallocate memory for the image
     imageMatrix = zeros(imageSize(1), imageSize(2), imageSize(3), 2);
     
+    disp(imagePaths
     % Load the *.raw image files and collate
-    for idx = 1:length(fileNames)
+    for idx = 1:length(imagePaths)
         fileID = fopen(imagePaths{idx});
         loadingImage = fread(fileID, 'real*4');
         fclose(fileID);

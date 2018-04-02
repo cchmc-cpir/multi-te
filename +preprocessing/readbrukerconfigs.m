@@ -1,7 +1,7 @@
-function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
+function readbrukerconfigs(outPath, acqpPath, methPath, numTE, numPoints, ...
     interlvs, trajMode, phi, zeroFilling)
     %READBRUKERCONFIGS Read information from Bruker ACQP and method.
-    %   dataPath:       path to directory containing data files
+    %   outPath:        path to output directory
     %   acqpPath:       full path to ACQP file
     %   methPath:       full path to METHOD file
     %   numTE:          number of echo times
@@ -9,7 +9,7 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
     %   interlvs:       number of slice interleaves
     %   trajMode:       trajectory mode
     %       'goldmean' = golden mean trajectory
-    %       'keyhold' = keyhole trajectory
+    %       'keyhole' = keyhole trajectory
     %   phi:            for 2D golden mean trajectory
     %
     %   Written by Jinbang Guo, Alex Cochran 2018.
@@ -172,7 +172,7 @@ function readbrukerconfigs(dataPath, acqpPath, methPath, numTE, numPoints, ...
         
     end
     
-    fileID = fopen(fullfile(dataPath, 'traj_measured'), 'w');
+    fileID = fopen(fullfile(outPath, 'traj_measured'), 'w');
     fwrite(fileID, trajectory, 'double');
     fclose(fileID);
 end
