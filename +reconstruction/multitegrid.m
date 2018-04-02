@@ -45,7 +45,10 @@ function multitegrid(numPoints, numProj, ramPoints, fidPoints, leadingCutProj, e
     fileID = fopen(fidPath);
     kData = squeeze(fread(fileID, inf, 'int32')); % step-like scaling depending on 'SW_h'
     fclose(fileID);
-
+    
+    size(kData)
+    disp(fidPoints)
+    disp(numProj)
     allData = reshape(kData, 2, fidPoints, numProj); % REMOVED numTE
 
     % remove singleton dimensions from the data

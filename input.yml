@@ -11,9 +11,16 @@ meta:
 mode:
     gate: true
     gated_reconstruction: true
+    trajectory_corrections: true
     reconstruct: true
     map: false
     log: true
+    save_mat: true
+
+# alternate file paths
+alt_files:
+    alt_meth_file: './method_waterphantom'
+    empty_var:
 
 # imaging parameters
 settings:

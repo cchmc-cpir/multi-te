@@ -1,5 +1,5 @@
 function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp, ...
-    threshPctInsp, echoTimes, inputPath, inputFID, outputDir, outputPrefix)
+    threshPctInsp, echoTimes, inputPath, inputFID, trajPath, outputDir, outputPrefix)
     %RETROGATINGLEADMAG Separate FID data based upon inspiration/expiration.
     %   Takes a single FID and returns new FID files separated into inspiration and expiration data,
     %   organized by echo time. Works for up to three echo times.
@@ -22,12 +22,6 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
     SEPARATION = round(NUM_PROJ_REAL / NUM_SEP);
 
 
-    %% set input path + file
-    
-    DATA_PATH = inputPath;
-    DATA_FILE = inputFID;
-
-
     %% confirm program configuration
 
     % only prompts if the filenames have not already been confirmed
@@ -42,18 +36,17 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         % decide whether to proceed
         switch CONFIRM
             case 'Yes'
-                disp('>> GATING :: CONFIGURATION SUCCESSFUL; PROCEEDING');
+                disp('GATING :: CONFIGURATION SUCCESSFUL; PROCEEDING');
             case 'No'
-                disp('>> GATING :: CONFIGURATION HALTED; ABORTING');
-                return % exit script
+                error('GATING :: CONFIGURATION HALTED; ABORTING');
         end
     end
 
     
     %% data read
 
-    % open file and extract k-space information, set by set
-    fileID = fopen(DATA_FILE);
+    % open FID file and extract k-space information, set by set
+    fileID = fopen(inputFID);
     kData = fread(fileID, [2, inf], 'int32');
     fclose(fileID);
 
@@ -67,7 +60,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
 
     %% retrospective gating subroutine
 
-    disp('>> STARTING RETROSPECTIVE GATING ROUTINE');
+    disp('GATING :: STARTING RETROSPECTIVE GATING ROUTINE');
 
     for echoIndex = 1:3
 
@@ -140,15 +133,19 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         fwrite(fileID, kDataExp, 'int32');
         fclose(fileID);
 
+        % NOT AN OUPUT FILE
         % read trajectory information (maybe move outside loop?)
-        fileID = fopen(fullfile(DATA_PATH, 'traj'));                           % CHANGED DESTINATION
-        trajectory = reshape(fread(fileID, [3, inf], 'double'), [3 NUM_POINTS NUM_PROJ * 3]);
+        %fileID = fopen(fullfile(DATA_PATH, 'traj'));                           % CHANGED DESTINATION
+        fileID = fopen(trajPath);
+        trajectory = reshape(fread(fileID, [3, inf], 'double'), [3 NUM_POINTS NUM_PROJ]);
         fclose(fileID);
 
         % extract expiration trajectory data
-        trajectory3Echo = trajectory;
-        clear trajectory;
-        trajectory = trajectory3Echo(:, :, NUM_CUT_PROJ + echoIndex:3:NUM_PROJ * 3 - 3 + echoIndex);
+        %trajectory3Echo = trajectory;
+        whos
+        %clear trajectory;
+        %trajectory = trajectory3Echo(:, :, (NUM_CUT_PROJ + NUM_PROJ)); % CHANGED HEAVILY 4/2/18
+        whos
         trajectoryExp = trajectory(:, :, selectVectorExp);
 
         % write expiration trajectory data to file
@@ -163,7 +160,7 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
         fileID = fopen(fullfile(outputDir, strcat(['fid_inspiration_', ...
             num2str(ECHO_TIMES{echoIndex})])), 'w');                           % CHANGED DESTINATION
         fwrite(fileID, kDataInsp, 'int32');
-        fprintf('\nEcho time: %f\nkDataInsp size: %f', ECHO_TIMES{echoIndex}, size(kDataInsp));
+        %fprintf('\nEcho time: %f\nkDataInsp size: %f', ECHO_TIMES{echoIndex}, size(kDataInsp));
         fclose(fileID);
 
         % extract inspiration trajectory data
@@ -179,6 +176,6 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
     % set figure position
     set(gcf, 'Position', [50 80 1420 680]);
 
-    disp('>> RETROSPECTIVE GATING ROUTINE COMPLETE');
+    disp('GATING :: RETROSPECTIVE GATING ROUTINE COMPLETE');
 end
 
