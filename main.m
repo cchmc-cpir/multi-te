@@ -101,7 +101,7 @@ end
 %% PROCESSING ROUTINES
 
 % Initialize run counter and execution flag
-runNum = 0;
+runNum = 1;
 execFlag = true;
     
 while execFlag % -----------------------------------------------------------------------------------
@@ -111,9 +111,9 @@ while execFlag % ---------------------------------------------------------------
     % calculations for another dataset or not.
     
     % Clear variables other than the ones used by the current loop structure
-    if runNum ~= 0
+    if runNum ~= 1
         fprintf('\n\nClearing workspace.');
-        clearvars -except execFlag runNum
+        clearvars -except execFlag runNum configStruct configFile STUDY_PATH
     end
 
     
@@ -316,7 +316,7 @@ while execFlag % ---------------------------------------------------------------
             switch alternateMethodChoice
                 case 'Use Alternate'
                     methodFile = configStruct.alt_files.alt_meth_file;
-                    if ~isempty(methodFile) || ~isa(methodFile, 'char')
+                    if isempty(methodFile)
                         error('Invalid alternate method file path.')
                     end
                 case 'Use Default'
@@ -348,7 +348,9 @@ while execFlag % ---------------------------------------------------------------
     if configStruct.mode.gate
         % Record gating start time
         gateStartTime = tic;
-
+        
+        disp(trajectoryFilePath)
+        
         % Import from gating package
         import gating.retrogatingleadmag
 

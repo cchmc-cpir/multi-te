@@ -47,8 +47,8 @@ function multitesdc(fidPath, trajPath, outPath, numTE, numPoints, fidPoints, num
     filePath(strfind(filePath, '_')) = [];
     key = respMode;
     index = strfind(filePath, key);
-    %echoTime = num2str(sscanf(filePath(index(1) + length(key):end), '%g', 1));
-    echoTime = '10000';
+    echoTime = num2str(sscanf(filePath(index(1) + length(key):end), '%g', 1));
+
     % Define *.raw filename
     outputFilename = strcat('reconstructed_img_', respMode, '_', echoTime, '.raw');
     

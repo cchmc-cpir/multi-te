@@ -142,10 +142,10 @@ function retrogatingleadmag(numProj, numCutProj, numPoints, numSep, threshPctExp
 
         % extract expiration trajectory data
         %trajectory3Echo = trajectory;
-        whos
+        
         %clear trajectory;
         %trajectory = trajectory3Echo(:, :, (NUM_CUT_PROJ + NUM_PROJ)); % CHANGED HEAVILY 4/2/18
-        whos
+        
         trajectoryExp = trajectory(:, :, selectVectorExp);
 
         % write expiration trajectory data to file

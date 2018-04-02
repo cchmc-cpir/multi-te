@@ -1,4 +1,4 @@
-function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThreshHigh, ...
+function t2starmap(imageSize, sliceRange, TE1Path, TE2Path, outPath, maskMode, mapThreshHigh, ...
         mapThreshLow, respMode)
     %T2STARMAP Produces maps of reconstructed MR images according to T2* values across them.
     %   Reconstructed MR images in *.raw format are mapped according to the T2* values at each image
@@ -9,30 +9,13 @@ function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThre
     %   This function currently operates by performing a comparison between two images taken at
     %   different echo times. Because of this, it requires two image files be loaded.
     
-    % Separate filename from path and store
-    [~, imageFilename2] = fileparts(imagePaths{2});
-    
-    % Extract echo times from reconstructed images
-    filePath1 = imagePaths{1};
-    filePath1(strfind(filePath1, '_')) = [];
-    filePath2 = imagePaths{2};
-    filePath1(strfind(filePath1, '_')) = [];
-    
-    key = respMode;
-    
-    index1 = strfind(filePath1, key);
-    index2 = strfind(filePath2, key);
-    
-    TE1 = sscanf(filePath1(index1(1) + length(key):end), '%g', 1);
-    TE2 = sscanf(filePath2(index2(1) + length(key):end), '%g', 1);
-    disp('MAPPING TE VALUES:')
-    disp(TE1)
-    disp(TE2)
+    imagePaths = {TE1, TE2};
+    class(imagePaths)
     
     % Preallocate memory for the image
     imageMatrix = zeros(imageSize(1), imageSize(2), imageSize(3), 2);
     
-    disp(imagePaths
+    disp(imagePaths);
     % Load the *.raw image files and collate
     for idx = 1:length(imagePaths)
         fileID = fopen(imagePaths{idx});
@@ -49,16 +32,17 @@ function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThre
     % Load binary mask OR manually segment binary mask now
     switch maskMode
         case 'load'
-            error('Binary mask loading is not implemented yet.');
+            [bin_mask, fileNames] = DICOM_Load;
         case 'now'
+            import mapping.mansegment
             binMask = mansegment(MR2);
     end
     
     
     %% Calculate T2* and threshold
-    
+    whos
     % Calculate T2*
-    T2Star = (TE2 - TE1) ./ log(MR1 ./ MR2);
+    T2Star = (.400 - .200) ./ log(MR1 ./ MR2);
     
     % Threshold T2* array
     T2Star(T2Star > mapThreshHigh) = mapThreshHigh;
@@ -72,7 +56,7 @@ function t2starmap(imageSize, sliceRange, imagePaths, outPath, maskMode, mapThre
     customJet = colormap;
     
     % Display image
-    mapFigure = figure('Name', strcat('T2* Map: ', imagePaths));
+    mapFigure = figure('Name', strcat('T2* Map: ', imagePaths{2}));
     imagesc(T2Star(:, :, 1) .* binMask);
 
     % Change colormap of displayed image
